@@ -427,107 +427,169 @@ export default function LandingPage() {
                         {/* Animated Background */}
                         <div className="absolute inset-0">
                             <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-white/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 animate-pulse" />
-                            <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500/20 rounded-full blur-3xl translate-x-1/2 translate-y-1/2 animate-pulse animation-delay-2000" />
-                        </div>
+                            {/* CTA Section */}
+                            <section className="py-32 bg-white relative overflow-hidden">
+                                <div className="container mx-auto px-6">
+                                    <div className="bg-gradient-to-br from-primary-900 via-blue-900 to-primary-950 rounded-[3rem] p-12 md:p-24 text-center relative overflow-hidden shadow-2xl shadow-primary-900/40 group">
+                                        {/* Animated Background */}
+                                        <div className="absolute inset-0">
+                                            <div className="absolute top-0 left-0 w-[800px] h-[800px] bg-white/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+                                            <div className="absolute bottom-0 right-0 w-[800px] h-[800px] bg-blue-500/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2 animate-pulse animation-delay-2000" />
+                                            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay"></div>
+                                        </div>
 
-                        <div className="relative z-10 max-w-4xl mx-auto">
-                            <h2 className="text-4xl md:text-7xl font-bold text-white mb-8 tracking-tight">Ready to schedule a visit?</h2>
-                            <p className="text-xl md:text-2xl text-blue-100 mb-12 font-light">
-                                Book your appointment online in less than 2 minutes. <br /> We can't wait to meet you and your pet!
-                            </p>
-                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                <Link href="/book/happy-paws">
-                                    <Button size="lg" className="bg-white text-primary-900 hover:bg-blue-50 h-16 px-12 text-lg font-bold rounded-full shadow-xl hover:shadow-white/20 hover:-translate-y-1 transition-all duration-300">
-                                        Book Appointment Now
-                                    </Button>
-                                </Link>
-                                <Link href="#contact">
-                                    <Button variant="outline" size="lg" className="bg-transparent border-2 border-white/20 text-white hover:bg-white/10 h-16 px-12 text-lg font-bold rounded-full backdrop-blur-sm">
-                                        Contact Support
-                                    </Button>
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                                        {/* Floating Elements */}
+                                        <motion.div
+                                            animate={{ y: [0, -20, 0] }}
+                                            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                                            className="absolute top-12 left-12 hidden lg:block"
+                                        >
+                                            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-xl transform -rotate-12">
+                                                <Calendar className="w-8 h-8 text-blue-300 mb-2" />
+                                                <div className="w-16 h-2 bg-white/20 rounded-full mb-1" />
+                                                <div className="w-10 h-2 bg-white/10 rounded-full" />
+                                            </div>
+                                        </motion.div>
 
-            {/* Footer */}
-            <footer id="contact" className="bg-white border-t border-gray-100 pt-24 pb-12">
-                <div className="container mx-auto px-6">
-                    <div className="grid md:grid-cols-4 gap-12 mb-20">
-                        <div className="col-span-1 md:col-span-2">
-                            <div className="flex items-center space-x-2 mb-8">
-                                <div className="bg-primary-600 p-2.5 rounded-xl shadow-lg shadow-primary-600/20">
-                                    <Heart className="w-6 h-6 text-white fill-current" />
+                                        <motion.div
+                                            animate={{ y: [0, 20, 0] }}
+                                            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                                            className="absolute bottom-12 right-12 hidden lg:block"
+                                        >
+                                            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-xl transform rotate-12">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-green-400 rounded-full flex items-center justify-center">
+                                                        <Check className="w-6 h-6 text-primary-900" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="w-20 h-2 bg-white/20 rounded-full mb-1" />
+                                                        <div className="w-12 h-2 bg-white/10 rounded-full" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+
+                                        <div className="relative z-10 max-w-4xl mx-auto">
+                                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full text-sm font-medium mb-8 border border-white/10 text-blue-200">
+                                                <span className="relative flex h-2 w-2">
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                                </span>
+                                                Available Today
+                                            </div>
+
+                                            <h2 className="text-4xl md:text-7xl font-bold text-white mb-8 tracking-tight leading-tight">
+                                                Ready to schedule <br /> a visit?
+                                            </h2>
+                                            <p className="text-xl md:text-2xl text-blue-100 mb-12 font-light max-w-2xl mx-auto">
+                                                Join <span className="font-bold text-white">15,000+ happy pets</span>. Book your appointment online in less than 2 minutes.
+                                            </p>
+
+                                            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                                                <Link href="/book/happy-paws">
+                                                    <Button size="lg" className="bg-white text-primary-900 hover:bg-blue-50 h-16 px-12 text-lg font-bold rounded-full shadow-2xl hover:shadow-white/25 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group/btn">
+                                                        <span className="relative z-10">Book Appointment Now</span>
+                                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-100 to-white opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                                                    </Button>
+                                                </Link>
+                                                <Link href="#contact">
+                                                    <Button variant="outline" size="lg" className="bg-transparent border-2 border-white/20 text-white hover:bg-white/10 h-16 px-12 text-lg font-bold rounded-full backdrop-blur-sm hover:border-white/40 transition-all">
+                                                        Contact Support
+                                                    </Button>
+                                                </Link>
+                                            </div>
+
+                                            <div className="mt-12 flex items-center justify-center gap-4 text-sm text-blue-200/60">
+                                                <div className="flex -space-x-3">
+                                                    {[1, 2, 3, 4].map((i) => (
+                                                        <div key={i} className="w-8 h-8 rounded-full border-2 border-primary-900 bg-gray-300 overflow-hidden">
+                                                            <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" className="w-full h-full object-cover" />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <p>Trusted by local pet owners</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <span className="text-2xl font-bold text-gray-900 tracking-tight">Happy Paws</span>
-                            </div>
-                            <p className="text-gray-500 max-w-sm leading-relaxed text-lg">
-                                Providing exceptional veterinary care to the Sydney community since 2010. We treat your pets like family.
-                            </p>
-                        </div>
-                        <div>
-                            <h4 className="font-bold text-gray-900 mb-8 text-lg">Contact</h4>
-                            <ul className="space-y-6 text-gray-500">
-                                <li className="flex items-start group">
-                                    <div className="bg-primary-50 p-2 rounded-lg mr-4 group-hover:bg-primary-100 transition-colors">
-                                        <MapPin className="w-5 h-5 text-primary-600 shrink-0" />
+                            </section>
+
+                            {/* Footer */}
+                            <footer id="contact" className="bg-white border-t border-gray-100 pt-24 pb-12">
+                                <div className="container mx-auto px-6">
+                                    <div className="grid md:grid-cols-4 gap-12 mb-20">
+                                        <div className="col-span-1 md:col-span-2">
+                                            <div className="flex items-center space-x-2 mb-8">
+                                                <div className="bg-primary-600 p-2.5 rounded-xl shadow-lg shadow-primary-600/20">
+                                                    <Heart className="w-6 h-6 text-white fill-current" />
+                                                </div>
+                                                <span className="text-2xl font-bold text-gray-900 tracking-tight">Happy Paws</span>
+                                            </div>
+                                            <p className="text-gray-500 max-w-sm leading-relaxed text-lg">
+                                                Providing exceptional veterinary care to the Sydney community since 2010. We treat your pets like family.
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-900 mb-8 text-lg">Contact</h4>
+                                            <ul className="space-y-6 text-gray-500">
+                                                <li className="flex items-start group">
+                                                    <div className="bg-primary-50 p-2 rounded-lg mr-4 group-hover:bg-primary-100 transition-colors">
+                                                        <MapPin className="w-5 h-5 text-primary-600 shrink-0" />
+                                                    </div>
+                                                    <span className="group-hover:text-primary-700 transition-colors">123 Pet Street, <br /> Sydney NSW 2000</span>
+                                                </li>
+                                                <li className="flex items-center group">
+                                                    <div className="bg-primary-50 p-2 rounded-lg mr-4 group-hover:bg-primary-100 transition-colors">
+                                                        <Phone className="w-5 h-5 text-primary-600 shrink-0" />
+                                                    </div>
+                                                    <span className="group-hover:text-primary-700 transition-colors font-medium">(02) 1234 5678</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-900 mb-8 text-lg">Hours</h4>
+                                            <ul className="space-y-4 text-gray-500">
+                                                <li className="flex justify-between items-center border-b border-gray-50 pb-2">
+                                                    <span>Mon - Fri</span>
+                                                    <span className="font-medium text-gray-900 bg-gray-50 px-3 py-1 rounded-full text-sm">8am - 8pm</span>
+                                                </li>
+                                                <li className="flex justify-between items-center border-b border-gray-50 pb-2">
+                                                    <span>Saturday</span>
+                                                    <span className="font-medium text-gray-900 bg-gray-50 px-3 py-1 rounded-full text-sm">9am - 5pm</span>
+                                                </li>
+                                                <li className="flex justify-between items-center border-b border-gray-50 pb-2">
+                                                    <span>Sunday</span>
+                                                    <span className="font-medium text-gray-900 bg-gray-50 px-3 py-1 rounded-full text-sm">10am - 4pm</span>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </div>
-                                    <span className="group-hover:text-primary-700 transition-colors">123 Pet Street, <br /> Sydney NSW 2000</span>
-                                </li>
-                                <li className="flex items-center group">
-                                    <div className="bg-primary-50 p-2 rounded-lg mr-4 group-hover:bg-primary-100 transition-colors">
-                                        <Phone className="w-5 h-5 text-primary-600 shrink-0" />
+                                    <div className="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
+                                        <p>© 2025 Happy Paws Veterinary Clinic. All rights reserved.</p>
+                                        <div className="flex gap-8">
+                                            <Link href="#" className="hover:text-primary-600 transition-colors">Privacy Policy</Link>
+                                            <Link href="#" className="hover:text-primary-600 transition-colors">Terms of Service</Link>
+                                            <Link href="#" className="hover:text-primary-600 transition-colors">Cookie Policy</Link>
+                                        </div>
                                     </div>
-                                    <span className="group-hover:text-primary-700 transition-colors font-medium">(02) 1234 5678</span>
-                                </li>
-                            </ul>
+                                </div>
+                            </footer>
                         </div>
-                        <div>
-                            <h4 className="font-bold text-gray-900 mb-8 text-lg">Hours</h4>
-                            <ul className="space-y-4 text-gray-500">
-                                <li className="flex justify-between items-center border-b border-gray-50 pb-2">
-                                    <span>Mon - Fri</span>
-                                    <span className="font-medium text-gray-900 bg-gray-50 px-3 py-1 rounded-full text-sm">8am - 8pm</span>
-                                </li>
-                                <li className="flex justify-between items-center border-b border-gray-50 pb-2">
-                                    <span>Saturday</span>
-                                    <span className="font-medium text-gray-900 bg-gray-50 px-3 py-1 rounded-full text-sm">9am - 5pm</span>
-                                </li>
-                                <li className="flex justify-between items-center border-b border-gray-50 pb-2">
-                                    <span>Sunday</span>
-                                    <span className="font-medium text-gray-900 bg-gray-50 px-3 py-1 rounded-full text-sm">10am - 4pm</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
-                        <p>© 2025 Happy Paws Veterinary Clinic. All rights reserved.</p>
-                        <div className="flex gap-8">
-                            <Link href="#" className="hover:text-primary-600 transition-colors">Privacy Policy</Link>
-                            <Link href="#" className="hover:text-primary-600 transition-colors">Terms of Service</Link>
-                            <Link href="#" className="hover:text-primary-600 transition-colors">Cookie Policy</Link>
-                        </div>
-                    </div>
-                </div>
-            </footer>
-        </div>
-    )
+                        )
 }
 
-function LinkedinIcon({ className }: { className?: string }) {
+                        function LinkedinIcon({className}: {className ?: string}) {
     return (
-        <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-        </svg>
-    )
+                        <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                        </svg>
+                        )
 }
 
-function MailIcon({ className }: { className?: string }) {
+                        function MailIcon({className}: {className ?: string}) {
     return (
-        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
-    )
+                        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        )
 }

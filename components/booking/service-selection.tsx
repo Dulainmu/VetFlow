@@ -11,7 +11,7 @@ type Service = {
     name: string
     description: string | null
     duration: number
-    price: number
+    price: number | null
 }
 
 interface ServiceSelectionProps {
@@ -85,7 +85,7 @@ export default function ServiceSelection({ clinicSlug, selectedServiceId, onSele
                             </div>
                             <div className="flex items-center text-gray-600">
                                 <DollarSign className="h-4 w-4 mr-1 text-primary-500" />
-                                ${service.price}
+                                {service.price !== null ? service.price : "Varies"}
                             </div>
                         </div>
                     </div>

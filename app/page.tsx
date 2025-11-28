@@ -441,9 +441,11 @@ export default function LandingPage() {
                                         Book Appointment Now
                                     </Button>
                                 </Link>
-                                <Button variant="outline" size="lg" className="border-2 border-white/20 text-white hover:bg-white/10 h-16 px-12 text-lg font-bold rounded-full backdrop-blur-sm">
-                                    Contact Support
-                                </Button>
+                                <Link href="#contact">
+                                    <Button variant="outline" size="lg" className="border-2 border-white/20 text-white hover:bg-white/10 h-16 px-12 text-lg font-bold rounded-full backdrop-blur-sm">
+                                        Contact Support
+                                    </Button>
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -451,7 +453,7 @@ export default function LandingPage() {
             </section>
 
             {/* Footer */}
-            <footer className="bg-white border-t border-gray-100 pt-24 pb-12">
+            <footer id="contact" className="bg-white border-t border-gray-100 pt-24 pb-12">
                 <div className="container mx-auto px-6">
                     <div className="grid md:grid-cols-4 gap-12 mb-20">
                         <div className="col-span-1 md:col-span-2">

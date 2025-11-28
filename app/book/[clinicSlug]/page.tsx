@@ -162,38 +162,56 @@ export default function BookingPage({ params }: { params: { clinicSlug: string }
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+            {/* Decorative Background Elements */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+                <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] bg-blue-100/30 rounded-full blur-3xl" />
+                <div className="absolute bottom-[10%] -left-[10%] w-[50%] h-[50%] bg-purple-100/30 rounded-full blur-3xl" />
+            </div>
+
+            <div className="max-w-3xl mx-auto relative z-10">
                 {/* Header */}
                 <div className="text-center mb-12 relative">
-                    <Link href="/" className="absolute right-0 top-0 md:right-[-2rem]">
-                        <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-200">
-                            <X className="w-6 h-6 text-gray-500" />
+                    <Link href="/" className="absolute right-0 top-0 md:right-[-3rem] md:top-[-1rem]">
+                        <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-2 border-gray-200 hover:border-red-200 hover:bg-red-50 hover:text-red-500 transition-all duration-300 shadow-sm">
+                            <X className="w-6 h-6" />
                         </Button>
                     </Link>
-                    <h1 className="text-3xl font-bold text-gray-900">Book an Appointment</h1>
-                    <p className="mt-2 text-gray-600">Schedule a visit with {params.clinicSlug}</p>
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                    >
+                        <h1 className="text-4xl font-bold text-gray-900 tracking-tight mb-2">Book an Appointment</h1>
+                        <p className="text-lg text-gray-600">Schedule a visit with <span className="font-semibold text-primary-600">{params.clinicSlug}</span></p>
+                    </motion.div>
                 </div>
 
                 {/* Progress Bar */}
-                <div className="mb-8">
-                    <div className="flex justify-between items-center relative">
-                        <div className="absolute left-0 top-1/2 w-full h-1 bg-gray-200 -z-10 rounded-full" />
-                        <div
-                            className="absolute left-0 top-1/2 h-1 bg-primary-600 -z-10 rounded-full transition-all duration-500 ease-in-out"
-                            style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
+                <div className="mb-10">
+                    <div className="flex justify-between items-center relative px-2">
+                        <div className="absolute left-0 top-1/2 w-full h-1.5 bg-gray-200 -z-10 rounded-full" />
+                        <motion.div
+                            className="absolute left-0 top-1/2 h-1.5 bg-primary-600 -z-10 rounded-full"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
+                            transition={{ duration: 0.5, ease: "easeInOut" }}
                         />
                         {STEPS.map((step) => (
-                            <div key={step.id} className="flex flex-col items-center bg-gray-50 px-2">
-                                <div
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${currentStep >= step.id
-                                        ? "bg-primary-600 border-primary-600 text-white"
-                                        : "bg-white border-gray-300 text-gray-400"
-                                        }`}
+                            <div key={step.id} className="flex flex-col items-center relative group">
+                                <motion.div
+                                    initial={false}
+                                    animate={{
+                                        backgroundColor: currentStep >= step.id ? "#2563eb" : "#ffffff",
+                                        borderColor: currentStep >= step.id ? "#2563eb" : "#e5e7eb",
+                                        scale: currentStep === step.id ? 1.1 : 1,
+                                    }}
+                                    transition={{ duration: 0.3 }}
+                                    className={`w-10 h-10 rounded-full flex items-center justify-center border-2 shadow-sm ${currentStep >= step.id ? "text-white" : "text-gray-400"}`}
                                 >
-                                    {currentStep > step.id ? <Check className="w-5 h-5" /> : step.id}
-                                </div>
-                                <span className={`text-xs mt-2 font-medium ${currentStep >= step.id ? "text-primary-700" : "text-gray-400"
+                                    {currentStep > step.id ? <Check className="w-6 h-6" /> : <span className="font-bold">{step.id}</span>}
+                                </motion.div>
+                                <span className={`absolute -bottom-8 text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-colors duration-300 ${currentStep >= step.id ? "text-primary-700" : "text-gray-400"
                                     }`}>
                                     {step.name}
                                 </span>

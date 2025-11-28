@@ -25,7 +25,7 @@ type Service = {
     name: string
     description: string | null
     duration: number
-    price: number
+    price: number | null
 }
 
 type Vet = {
@@ -181,8 +181,8 @@ export default function BookingPage({ params }: { params: { clinicSlug: string }
                             <div key={step.id} className="flex flex-col items-center bg-gray-50 px-2">
                                 <div
                                     className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${currentStep >= step.id
-                                            ? "bg-primary-600 border-primary-600 text-white"
-                                            : "bg-white border-gray-300 text-gray-400"
+                                        ? "bg-primary-600 border-primary-600 text-white"
+                                        : "bg-white border-gray-300 text-gray-400"
                                         }`}
                                 >
                                     {currentStep > step.id ? <Check className="w-5 h-5" /> : step.id}

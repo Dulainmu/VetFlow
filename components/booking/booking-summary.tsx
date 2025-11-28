@@ -5,7 +5,7 @@ import { Calendar, Clock, User, Stethoscope, PawPrint } from "lucide-react"
 
 interface BookingSummaryProps {
     serviceName?: string
-    servicePrice?: number
+    servicePrice?: number | null
     vetName?: string | null
     date?: Date
     time?: string
@@ -43,7 +43,7 @@ export default function BookingSummary({
                         </p>
                     </div>
                     <div className="ml-auto font-medium text-gray-900">
-                        ${servicePrice}
+                        {servicePrice !== null && servicePrice !== undefined ? `$${servicePrice}` : "Varies"}
                     </div>
                 </div>
 
@@ -79,7 +79,9 @@ export default function BookingSummary({
                 <div className="border-t border-gray-100 pt-4 mt-4">
                     <div className="flex justify-between items-center">
                         <span className="font-medium text-gray-900">Total</span>
-                        <span className="text-xl font-bold text-primary-600">${servicePrice}</span>
+                        <span className="text-xl font-bold text-primary-600">
+                            {servicePrice !== null && servicePrice !== undefined ? `$${servicePrice}` : "Varies"}
+                        </span>
                     </div>
                 </div>
             </div>

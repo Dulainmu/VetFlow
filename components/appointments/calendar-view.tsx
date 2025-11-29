@@ -7,6 +7,10 @@ import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useToast } from "@/hooks/use-toast"
+import { updateAppointmentTime } from "@/lib/appointment-actions"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 interface CalendarViewProps {
     date: Date
@@ -16,11 +20,53 @@ interface CalendarViewProps {
 }
 
 export function CalendarView({ date, appointments, availabilityRules, vets }: CalendarViewProps) {
+    const { toast } = useToast()
+    const router = useRouter()
+    const [draggingId, setDraggingId] = useState<string | null>(null)
+
     // Generate time slots (8 AM to 6 PM)
     const hours = Array.from({ length: 11 }, (_, i) => i + 8)
 
     // Filter vets to show only active ones
     const activeVets = vets.filter(v => v.isActive)
+
+    const handleDragStart = (e: React.DragEvent, aptId: string) => {
+        e.dataTransfer.setData("text/plain", aptId)
+        setDraggingId(aptId)
+    }
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault()
+    }
+
+    const handleDrop = async (e: React.DragEvent, vetId: string, hour: number) => {
+        e.preventDefault()
+        const aptId = e.dataTransfer.getData("text/plain")
+        setDraggingId(null)
+
+        if (!aptId) return
+
+        // Calculate new date
+        const newDate = new Date(date)
+        newDate.setHours(hour, 0, 0, 0)
+
+        // Optimistic UI update could go here, but for now we'll rely on revalidation
+        const result = await updateAppointmentTime(aptId, newDate)
+
+        if (result.success) {
+            toast({
+                title: "Appointment Rescheduled",
+                description: `Moved to ${format(newDate, "h:mm a")}`,
+            })
+            router.refresh()
+        } else {
+            toast({
+                title: "Error",
+                description: "Failed to move appointment",
+                variant: "destructive",
+            })
+        }
+    }
 
     return (
         <div className="flex flex-col border rounded-md overflow-hidden bg-background">
@@ -72,19 +118,28 @@ export function CalendarView({ date, appointments, availabilityRules, vets }: Ca
                                 })
 
                                 return (
-                                    <div key={`${vet.id}-${hour}`} className="flex-1 border-r last:border-r-0 relative p-1 group">
+                                    <div
+                                        key={`${vet.id}-${hour}`}
+                                        className="flex-1 border-r last:border-r-0 relative p-1 group transition-colors hover:bg-muted/30"
+                                        onDragOver={handleDragOver}
+                                        onDrop={(e) => handleDrop(e, vet.id, hour)}
+                                    >
                                         {/* Render Appointments */}
                                         {vetAppointments.map(apt => (
                                             <TooltipProvider key={apt.id}>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
-                                                        <div className={cn(
-                                                            "absolute inset-x-1 rounded px-2 py-1 text-xs font-medium cursor-pointer hover:opacity-90 transition-opacity overflow-hidden",
-                                                            "bg-primary/10 border-l-4 border-primary text-primary-foreground",
-                                                            apt.status === "CONFIRMED" && "bg-blue-100 text-blue-800 border-blue-500",
-                                                            apt.status === "CHECKED_IN" && "bg-green-100 text-green-800 border-green-500",
-                                                            apt.status === "CANCELED" && "bg-red-100 text-red-800 border-red-500 opacity-50",
-                                                        )}
+                                                        <div
+                                                            draggable
+                                                            onDragStart={(e) => handleDragStart(e, apt.id)}
+                                                            className={cn(
+                                                                "absolute inset-x-1 rounded px-2 py-1 text-xs font-medium cursor-grab active:cursor-grabbing hover:opacity-90 transition-all overflow-hidden shadow-sm",
+                                                                "bg-primary/10 border-l-4 border-primary text-primary-foreground",
+                                                                apt.status === "CONFIRMED" && "bg-blue-100 text-blue-800 border-blue-500",
+                                                                apt.status === "CHECKED_IN" && "bg-green-100 text-green-800 border-green-500",
+                                                                apt.status === "CANCELED" && "bg-red-100 text-red-800 border-red-500 opacity-50",
+                                                                draggingId === apt.id && "opacity-50"
+                                                            )}
                                                             style={{
                                                                 top: `${(new Date(apt.appointmentDate).getMinutes() / 60) * 100}%`,
                                                                 height: `${(apt.duration / 60) * 100}%`,

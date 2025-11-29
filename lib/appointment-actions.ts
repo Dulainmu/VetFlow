@@ -282,3 +282,33 @@ export async function getAvailabilityRules(clinicId: string, date: Date) {
 
     return rules
 }
+
+export async function updateAppointmentTime(
+    id: string,
+    newDate: Date,
+    newDuration?: number
+) {
+    const session = await auth()
+    if (!session?.user?.clinicId) {
+        return { success: false, error: "Unauthorized" }
+    }
+
+    try {
+        await prisma.appointment.update({
+            where: {
+                id,
+                clinicId: session.user.clinicId,
+            },
+            data: {
+                appointmentDate: newDate,
+                duration: newDuration, // Optional update if resized
+            },
+        })
+
+        revalidatePath("/dashboard/appointments")
+        return { success: true }
+    } catch (error) {
+        console.error("Failed to update appointment time:", error)
+        return { success: false, error: "Failed to update appointment" }
+    }
+}

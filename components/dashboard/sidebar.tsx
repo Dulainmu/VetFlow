@@ -10,7 +10,8 @@ import {
     Settings,
     LogOut,
     Stethoscope,
-    PawPrint
+    PawPrint,
+    BarChart3
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { signOut } from "next-auth/react"
@@ -45,6 +46,12 @@ const routes = [
         icon: Users,
         href: "/dashboard/settings/staff",
         color: "text-green-600",
+    },
+    {
+        label: "Reports",
+        icon: BarChart3,
+        href: "/dashboard/reports",
+        color: "text-emerald-500",
     },
     {
         label: "Settings",

@@ -10,7 +10,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Search, Eye, Plus, PawPrint } from "lucide-react"
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -137,11 +137,12 @@ export default async function PetsPage({
                                     </TableCell>
                                     <TableCell className="text-right">
                                         {/* We can add a pet details view later if needed, for now link to client */}
-                                        <Button variant="ghost" size="icon" asChild>
-                                            <Link href={`/dashboard/clients/${pet.ownerId}`}>
-                                                <Eye className="h-4 w-4" />
-                                            </Link>
-                                        </Button>
+                                        <Link
+                                            href={`/dashboard/pets/${pet.id}`}
+                                            className={buttonVariants({ variant: "ghost", size: "icon" })}
+                                        >
+                                            <Eye className="h-4 w-4" />
+                                        </Link>
                                     </TableCell>
                                 </TableRow>
                             ))

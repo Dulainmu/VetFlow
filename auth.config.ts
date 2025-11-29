@@ -35,6 +35,7 @@ export const authConfig = {
                 token.id = user.id || ""
                 token.role = user.role || ""
                 token.clinicId = user.clinicId || ""
+                token.lastName = (user as any).lastName || ""
             }
             return token
         },
@@ -43,6 +44,7 @@ export const authConfig = {
                 session.user.id = token.id as string
                 session.user.role = token.role
                 session.user.clinicId = token.clinicId
+                session.user.lastName = token.lastName as string
             }
             return session
         },

@@ -1,27 +1,27 @@
 import { Resend } from 'resend';
 import { format } from 'date-fns';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export async function sendAppointmentConfirmation(data: {
-    to: string;
-    appointmentDate: Date;
-    petName: string;
-    serviceName: string;
-    clinicName: string;
-    clinicAddress: string;
-    vetName: string;
+  to: string;
+  appointmentDate: Date;
+  petName: string;
+  serviceName: string;
+  clinicName: string;
+  clinicAddress: string;
+  vetName: string;
 }) {
-    if (!process.env.RESEND_API_KEY) {
-        console.warn("RESEND_API_KEY is not set. Email not sent.");
-        return;
-    }
+  if (!resend) {
+    console.warn("Resend client not initialized (missing API key). Email not sent.");
+    return;
+  }
 
-    const { data: response, error } = await resend.emails.send({
-        from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
-        to: data.to,
-        subject: `Appointment Confirmed: ${data.petName} on ${format(data.appointmentDate, 'MMM d, yyyy')}`,
-        html: `
+  const { data: response, error } = await resend.emails.send({
+    from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
+    to: data.to,
+    subject: `Appointment Confirmed: ${data.petName} on ${format(data.appointmentDate, 'MMM d, yyyy')}`,
+    html: `
       <!DOCTYPE html>
       <html>
         <head>
@@ -78,13 +78,13 @@ export async function sendAppointmentConfirmation(data: {
         </body>
       </html>
     `,
-    });
+  });
 
-    if (error) {
-        console.error('Email send error:', error);
-        // We don't throw here to avoid failing the booking if email fails
-        return null;
-    }
+  if (error) {
+    console.error('Email send error:', error);
+    // We don't throw here to avoid failing the booking if email fails
+    return null;
+  }
 
-    return response;
+  return response;
 }

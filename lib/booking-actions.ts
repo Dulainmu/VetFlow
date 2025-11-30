@@ -7,12 +7,16 @@ import { sendAppointmentConfirmation } from "@/lib/email"
 
 export async function getServices(clinicSlug: string) {
     try {
+        console.log(`[getServices] Fetching services for clinic slug: ${clinicSlug}`)
         const clinic = await prisma.clinic.findUnique({
             where: { slug: clinicSlug },
             select: { id: true }
         })
 
-        if (!clinic) return []
+        if (!clinic) {
+            console.warn(`[getServices] Clinic not found for slug: ${clinicSlug}`)
+            return []
+        }
 
         const services = await prisma.service.findMany({
             where: {
@@ -24,9 +28,13 @@ export async function getServices(clinicSlug: string) {
                 name: 'asc',
             },
         })
+
+        console.log(`[getServices] Found ${services.length} services for clinic: ${clinicSlug}`)
         return services
     } catch (error) {
         console.error("Failed to fetch services:", error)
+        // Re-throw or return empty? Returning empty hides the error.
+        // Let's return empty but ensure it's logged.
         return []
     }
 }

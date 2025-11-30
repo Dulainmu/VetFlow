@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { getServices } from "@/lib/booking-actions"
 import { Check, Clock, DollarSign } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
 // Define the type based on the Prisma model
 type Service = {
@@ -23,14 +24,22 @@ interface ServiceSelectionProps {
 export default function ServiceSelection({ clinicSlug, selectedServiceId, onSelect }: ServiceSelectionProps) {
     const [services, setServices] = useState<Service[]>([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         async function loadServices() {
             try {
+                setError(null)
                 const data = await getServices(clinicSlug)
                 setServices(data)
+                if (data.length === 0) {
+                    // It might be empty because of no services, or error handled on server
+                    // We can't distinguish easily unless we change return type.
+                    // But for now, empty is empty.
+                }
             } catch (error) {
                 console.error("Error loading services:", error)
+                setError("Failed to load services. Please try again.")
             } finally {
                 setLoading(false)
             }
@@ -44,6 +53,15 @@ export default function ServiceSelection({ clinicSlug, selectedServiceId, onSele
                 {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="h-32 bg-gray-100 rounded-xl animate-pulse" />
                 ))}
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="text-center py-12 bg-red-50 rounded-xl border-2 border-dashed border-red-200">
+                <p className="text-red-600 mb-2">{error}</p>
+                <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>
             </div>
         )
     }

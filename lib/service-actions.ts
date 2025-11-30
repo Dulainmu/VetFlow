@@ -50,6 +50,7 @@ export async function createService(data: z.infer<typeof serviceSchema>) {
                 price: validated.price,
                 color: validated.color || "#3b82f6",
                 isActive: true,
+                allowOnlineBooking: true,
             },
         })
 

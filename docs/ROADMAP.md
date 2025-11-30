@@ -1,6 +1,6 @@
-# 12. FUTURE ENHANCEMENTS & ROADMAP
+# PRODUCT ROADMAP
 
-## 12.1 Product Roadmap
+## Product Roadmap
 
 ### **Phase 1: MVP (Weeks 1-6)** ✅
 **Goal:** Launch functional booking system for pilot clinics
@@ -8,7 +8,7 @@
 **Features:**
 - ✅ Online booking system
 - ✅ Admin dashboard
-- ✅ Automated reminders (email + SMS)
+- ✅ Automated reminders (email)
 - ✅ Pet & owner records
 - ✅ Calendar view
 - ✅ Basic authentication & authorization
@@ -38,8 +38,8 @@
   
 - [ ] **Billing & Invoicing**
   - Generate invoices
-  - Track payments
-  - Payment methods (cash, card, bank transfer)
+  -m Track payments
+  - Payment ethods (cash, card, bank transfer)
   - GST calculation
   
 - [ ] **Payment Integration (Stripe)**

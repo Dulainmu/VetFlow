@@ -39,26 +39,25 @@ VetFlow is a comprehensive veterinary clinic management and online booking syste
 ## ✨ Key Features
 
 ### Phase 1: MVP (Current)
-- ✅ **Online Booking System** - 24/7 appointment booking for pet owners
+- ✅ **Online Booking System** - 24/7 appointment booking with Guest Upsell & Account Claiming
 - ✅ **Admin Dashboard** - Manage appointments, check-ins, and daily schedules
-- ✅ **Automated Reminders** - Email + SMS reminders to reduce no-shows
+- ✅ **Authentication** - Separate secure flows for Clinic Staff and Pet Owners
+- ✅ **Staff Management** - Invite system with role-based access control (Admin, Vet, Nurse, Receptionist)
+- ✅ **Billing & Invoicing** - Create invoices, process Stripe payments, and track revenue
+- ✅ **Reporting & Analytics** - Interactive charts for revenue, appointment trends, and service popularity
 - ✅ **Pet & Owner Records** - Comprehensive patient database with medical history
 - ✅ **Calendar View** - Visual scheduling with drag-and-drop
-- ✅ **Multi-User Roles** - Admin, Vet, Receptionist, Pet Owner permissions
 
-### Phase 2: Enhanced (Planned)
-- 📊 Reporting & Analytics
-- 💳 Billing & Invoicing
-- 💰 Payment Integration (Stripe)
-- 👥 Advanced User Management
-- 📱 Client Portal
+### Phase 2: Enhanced (In Progress)
+- 📱 Client Portal (Partial)
+- 🔔 Advanced Notifications (SMS/Email)
+- 📦 Inventory Management
+- 🏥 Multi-Location Support
 
 ### Phase 3+: Advanced (Roadmap)
 - 📱 Mobile Apps (iOS/Android)
-- 🏥 Multi-Location Support
-- 📦 Inventory Management
 - 📹 Telemedicine
-- 🔗 Accounting Integrations
+- 🔗 Accounting Integrations (Xero/MYOB)
 
 See [docs/ROADMAP.md](./docs/ROADMAP.md) for full feature roadmap.
 
@@ -71,12 +70,13 @@ See [docs/ROADMAP.md](./docs/ROADMAP.md) for full feature roadmap.
 - **Language:** TypeScript 5+
 - **Styling:** Tailwind CSS 3.4+
 - **UI Components:** shadcn/ui (Radix UI)
+- **Charts:** Recharts
 - **Forms:** React Hook Form + Zod
 - **State:** React Context + Zustand
 - **Icons:** Lucide React
 
 ### Backend
-- **Framework:** Next.js API Routes
+- **Framework:** Next.js Server Actions
 - **ORM:** Prisma 5+
 - **Database:** PostgreSQL 15+ (Supabase)
 - **Authentication:** NextAuth.js v5
@@ -85,14 +85,13 @@ See [docs/ROADMAP.md](./docs/ROADMAP.md) for full feature roadmap.
 ### Integrations
 - **Email:** Resend
 - **SMS:** Twilio
-- **Payments:** Stripe (Phase 2)
+- **Payments:** Stripe
 
 ### Infrastructure
 - **Hosting:** Vercel
 - **Database:** Supabase (PostgreSQL)
 - **Domain:** vetflow.dulain.dev
 - **Monitoring:** Vercel Analytics + Sentry
-- **Uptime:** UptimeRobot
 
 See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for detailed architecture.
 
@@ -102,7 +101,7 @@ See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for detailed architecture.
 
 ### Prerequisites
 - Node.js 18+ (LTS)
-- pnpm 8+
+- npm 9+ (or pnpm 8+)
 - PostgreSQL 15+ OR Supabase account
 - Git
 
@@ -116,7 +115,7 @@ See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for detailed architecture.
 
 2. **Install dependencies**
    ```bash
-   pnpm install
+   npm install
    ```
 
 3. **Set up environment variables**
@@ -129,20 +128,21 @@ See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for detailed architecture.
    DATABASE_URL="your-database-url"
    NEXTAUTH_SECRET="generate-with-openssl"
    RESEND_API_KEY="your-resend-key"
-   TWILIO_ACCOUNT_SID="your-twilio-sid"
+   STRIPE_SECRET_KEY="your-stripe-secret"
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="your-stripe-public"
    # ... see .env.example for full list
    ```
 
 4. **Set up database**
    ```bash
-   pnpm prisma generate
-   pnpm prisma db push
-   pnpm prisma db seed  # Optional: seed demo data
+   npx prisma generate
+   npx prisma db push
+   npx prisma db seed  # Optional: seed demo data
    ```
 
 5. **Start development server**
    ```bash
-   pnpm dev
+   npm run dev
    ```
 
 6. **Open in browser**

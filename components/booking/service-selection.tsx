@@ -13,6 +13,7 @@ type Service = {
     description: string | null
     duration: number
     price: number | null
+    depositAmount: number
 }
 
 interface ServiceSelectionProps {
@@ -31,7 +32,7 @@ export default function ServiceSelection({ clinicSlug, selectedServiceId, onSele
             try {
                 setError(null)
                 const data = await getServices(clinicSlug)
-                setServices(data)
+                setServices(data as any)
                 if (data.length === 0) {
                     // It might be empty because of no services, or error handled on server
                     // We can't distinguish easily unless we change return type.

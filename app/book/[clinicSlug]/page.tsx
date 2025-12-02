@@ -1,35 +1,47 @@
 "use client"
 
-import { useState } from "react"
-import Link from "next/link"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronRight, ChevronLeft, Check, Loader2, X } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { createBooking, getAvailableSlots, getServices, getVets } from "@/lib/booking-actions"
 import ServiceSelection from "@/components/booking/service-selection"
 import VetSelection from "@/components/booking/vet-selection"
 import TimeSelection from "@/components/booking/time-selection"
-import DetailsForm, { BookingDetails } from "@/components/booking/details-form"
+import DetailsForm from "@/components/booking/details-form"
 import BookingSummary from "@/components/booking/booking-summary"
-import { createBooking } from "@/lib/booking-actions"
+import { checkEmailExists } from "@/lib/auth-actions"
+import { format, addMinutes } from "date-fns"
+import { Check, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, User, ArrowRight, Loader2 } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Elements } from "@stripe/react-stripe-js"
+import { loadStripe } from "@stripe/stripe-js"
+import { PaymentForm } from "@/components/booking/payment-form"
+import Link from "next/link"
+import GuestUpsellDialog from "@/components/booking/guest-upsell-dialog"
 
-// Steps
+// Initialize Stripe
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+
 const STEPS = [
     { id: 1, name: "Service", description: "Choose a service" },
     { id: 2, name: "Vet", description: "Select a veterinarian" },
     { id: 3, name: "Time", description: "Pick a date & time" },
     { id: 4, name: "Details", description: "Your information" },
-    { id: 5, name: "Confirm", description: "Review booking" },
+    { id: 5, name: "Payment", description: "Secure checkout" },
+    { id: 6, name: "Confirm", description: "Review booking" },
 ]
 
-type Service = {
+// ... (Keep existing interfaces: Service, Vet, etc.)
+interface Service {
     id: string
     name: string
     description: string | null
     duration: number
     price: number | null
+    depositAmount: number
 }
 
-type Vet = {
+interface Vet {
     id: string
     name: string | null
     image: string | null
@@ -40,59 +52,156 @@ export default function BookingPage({ params }: { params: { clinicSlug: string }
     const [currentStep, setCurrentStep] = useState(1)
     const [direction, setDirection] = useState(0)
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [bookingSuccess, setBookingSuccess] = useState<string | null>(null)
+    const [bookingId, setBookingId] = useState<string | null>(null)
 
-    // Booking State
+    // Data State
+    const [services, setServices] = useState<Service[]>([])
+    const [vets, setVets] = useState<Vet[]>([])
+    const [availableSlots, setAvailableSlots] = useState<string[]>([])
+
+    // Selection State
     const [selectedService, setSelectedService] = useState<Service | null>(null)
-    const [selectedVet, setSelectedVet] = useState<Vet | null>(null) // null = Any Vet
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
-    const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined)
-    const [bookingDetails, setBookingDetails] = useState<BookingDetails>({
+    const [selectedVet, setSelectedVet] = useState<Vet | null>(null)
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
+    const [selectedTime, setSelectedTime] = useState<string | null>(null)
+
+    // Details State
+    const [details, setDetails] = useState<{
+        ownerName: string
+        ownerEmail: string
+        ownerPhone: string
+        petName: string
+        petSpecies: string
+        petBreed: string
+        petAge: string
+        petGender: string
+        password?: string
+    }>({
         ownerName: "",
         ownerEmail: "",
         ownerPhone: "",
         petName: "",
-        petSpecies: "",
+        petSpecies: "DOG",
         petBreed: "",
         petAge: "",
-        petGender: "",
+        petGender: "MALE",
+        password: ""
     })
 
-    const nextStep = async () => {
-        if (currentStep === STEPS.length) {
-            // Submit Booking
-            await handleBookingSubmit()
-        } else {
-            setDirection(1)
-            setCurrentStep((prev) => prev + 1)
+    // Auth State
+    const [emailExists, setEmailExists] = useState(false)
+    const [hasPassword, setHasPassword] = useState(false) // New state
+    const [isCheckingEmail, setIsCheckingEmail] = useState(false)
+    const [showUpsell, setShowUpsell] = useState(false) // Upsell dialog state
+    const [showPasswordField, setShowPasswordField] = useState(false) // Force show password field
+
+    // Payment State
+    const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null)
+
+    // ... (Keep existing useEffects for loading data)
+    useEffect(() => {
+        getServices(params.clinicSlug).then((data: any) => setServices(data))
+        getVets(params.clinicSlug).then(setVets)
+    }, [params.clinicSlug])
+
+    useEffect(() => {
+        if (selectedService && selectedDate) {
+            getAvailableSlots(selectedDate, params.clinicSlug, selectedService.id, selectedVet?.id)
+                .then(setAvailableSlots)
         }
+    }, [selectedDate, selectedService, selectedVet, params.clinicSlug])
+
+    // Email Check Effect
+    useEffect(() => {
+        const checkEmail = async () => {
+            if (details.ownerEmail && details.ownerEmail.includes('@') && details.ownerEmail.includes('.')) {
+                setIsCheckingEmail(true)
+                const result = await checkEmailExists(details.ownerEmail)
+                setEmailExists(result.exists)
+                setHasPassword(result.hasPassword)
+                setIsCheckingEmail(false)
+            } else {
+                setEmailExists(false)
+                setHasPassword(false)
+            }
+        }
+
+        const timeoutId = setTimeout(checkEmail, 500) // Debounce
+        return () => clearTimeout(timeoutId)
+    }, [details.ownerEmail])
+
+
+    const nextStep = () => {
+        // Step 4: Details Validation & Logic
+        if (currentStep === 4) {
+            // Basic validation
+            if (!details.ownerName || !details.ownerEmail || !details.ownerPhone || !details.petName) {
+                return // Should be handled by disabled button, but extra safety
+            }
+
+            if (emailExists) {
+                if (hasPassword) {
+                    // User exists AND has password -> Must login
+                    // Ideally show error or redirect, UI shows message
+                    return
+                } else {
+                    // User exists but NO password (Claim Flow)
+                    // Must set password to proceed
+                    if (!details.password || details.password.length < 8) {
+                        // Force show password field if not already visible (it should be)
+                        return
+                    }
+                    // Proceed to payment/confirm
+                }
+            } else {
+                // New User
+                // Show Upsell Dialog if we haven't shown it yet and password isn't set
+                if (!showPasswordField && !details.password) {
+                    setShowUpsell(true)
+                    return
+                }
+                // If password field is shown, validate it
+                if (showPasswordField && (!details.password || details.password.length < 8)) {
+                    return
+                }
+            }
+        }
+
+        if (currentStep === 4) {
+            // Check if payment is needed
+            const needsPayment = (selectedService?.depositAmount || 0) > 0 || (selectedService?.price || 0) > 0
+            if (!needsPayment) {
+                setDirection(1)
+                setCurrentStep(6) // Skip payment
+                return
+            }
+        }
+
+        setDirection(1)
+        setCurrentStep((prev) => Math.min(prev + 1, STEPS.length))
     }
 
     const prevStep = () => {
-        if (currentStep > 1) {
-            setDirection(-1)
-            setCurrentStep((prev) => prev - 1)
+        if (currentStep === 6) {
+            // Check if payment was skipped
+            const needsPayment = (selectedService?.depositAmount || 0) > 0 || (selectedService?.price || 0) > 0
+            if (!needsPayment) {
+                setDirection(-1)
+                setCurrentStep(4) // Go back to details
+                return
+            }
         }
+
+        setDirection(-1)
+        setCurrentStep((prev) => Math.max(prev - 1, 1))
     }
 
-    const handleServiceSelect = (service: Service) => {
-        setSelectedService(service)
+    const handlePaymentSuccess = (paymentIntentId: string) => {
+        setPaymentIntentId(paymentIntentId)
+        nextStep()
     }
 
-    const handleVetSelect = (vet: Vet | null) => {
-        setSelectedVet(vet)
-    }
-
-    const handleTimeSelect = (date: Date, time: string) => {
-        setSelectedDate(date)
-        setSelectedTime(time)
-    }
-
-    const handleDetailsChange = (details: BookingDetails) => {
-        setBookingDetails(details)
-    }
-
-    const handleBookingSubmit = async () => {
+    const handleSubmit = async () => {
         if (!selectedService || !selectedDate || !selectedTime) return
 
         setIsSubmitting(true)
@@ -103,254 +212,273 @@ export default function BookingPage({ params }: { params: { clinicSlug: string }
                 vetId: selectedVet?.id,
                 date: selectedDate,
                 time: selectedTime,
-                details: bookingDetails,
+                details,
+                stripePaymentIntentId: paymentIntentId || undefined,
+                password: details.password || undefined // Pass password
             })
 
-            if (result.success && result.bookingId) {
-                setBookingSuccess(result.bookingId)
+            if (result.success) {
+                setBookingId(result.bookingId!)
+                // Success state handled by UI render
             } else {
-                // Handle error (toast or alert)
                 alert("Booking failed. Please try again.")
             }
         } catch (error) {
-            console.error("Booking error:", error)
-            alert("An unexpected error occurred.")
+            console.error(error)
+            alert("An error occurred.")
         } finally {
             setIsSubmitting(false)
         }
     }
 
-    const variants = {
-        enter: (direction: number) => ({
-            x: direction > 0 ? 50 : -50,
-            opacity: 0,
-        }),
-        center: {
-            x: 0,
-            opacity: 1,
-        },
-        exit: (direction: number) => ({
-            x: direction < 0 ? 50 : -50,
-            opacity: 0,
-        }),
+    // Upsell Handlers
+    const handleGuestUpsellSignUp = () => {
+        setShowUpsell(false)
+        setShowPasswordField(true)
+        // Stay on step 4 so they can enter password
     }
 
-    if (bookingSuccess) {
+    const handleGuestUpsellContinue = () => {
+        setShowUpsell(false)
+        // Proceed to next step
+        // We need to manually trigger the next step logic again, skipping the upsell check
+        // Or just call the logic directly.
+        // Let's duplicate the payment check logic here for simplicity
+        const needsPayment = (selectedService?.depositAmount || 0) > 0 || (selectedService?.price || 0) > 0
+        if (!needsPayment) {
+            setDirection(1)
+            setCurrentStep(6)
+        } else {
+            setDirection(1)
+            setCurrentStep(5)
+        }
+    }
+
+    if (bookingId) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-                    <div className="mx-auto h-20 w-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
-                        <Check className="h-10 w-10 text-green-600" />
+                <Card className="max-w-md w-full text-center p-8">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Check className="w-8 h-8 text-green-600" />
                     </div>
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Booking Confirmed!</h2>
-                    <p className="text-gray-600 mb-6">
-                        Your appointment has been successfully scheduled. We've sent a confirmation email to {bookingDetails.ownerEmail}.
+                    <p className="text-gray-600 mb-8">
+                        Your appointment has been successfully scheduled. We've sent a confirmation email to {details.ownerEmail}.
                     </p>
-                    <div className="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-100">
-                        <p className="text-sm text-gray-500 uppercase tracking-wide font-semibold mb-1">Booking Reference</p>
-                        <p className="text-xl font-mono font-bold text-primary-600">{bookingSuccess}</p>
+                    <div className="space-y-3">
+                        <Link href="/portal/appointments">
+                            <Button className="w-full">View My Appointments</Button>
+                        </Link>
+                        <Link href="/">
+                            <Button variant="outline" className="w-full">Back to Home</Button>
+                        </Link>
                     </div>
-                    <Button
-                        className="w-full bg-primary-600 hover:bg-primary-700"
-                        onClick={() => window.location.reload()}
-                    >
-                        Book Another Appointment
-                    </Button>
-                </div>
+                </Card>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-            {/* Decorative Background Elements */}
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-                <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] bg-blue-100/30 rounded-full blur-3xl" />
-                <div className="absolute bottom-[10%] -left-[10%] w-[50%] h-[50%] bg-purple-100/30 rounded-full blur-3xl" />
-            </div>
+        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+            <GuestUpsellDialog
+                open={showUpsell}
+                onOpenChange={setShowUpsell}
+                onSignUp={handleGuestUpsellSignUp}
+                onGuest={handleGuestUpsellContinue}
+            />
 
-            <div className="max-w-3xl mx-auto relative z-10">
-                {/* Header */}
-                <div className="text-center mb-12 relative">
-                    <Link href="/" className="absolute right-0 top-0 md:right-[-3rem] md:top-[-1rem]">
-                        <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-2 border-gray-200 hover:border-red-200 hover:bg-red-50 hover:text-red-500 transition-all duration-300 shadow-sm">
-                            <X className="w-6 h-6" />
-                        </Button>
-                    </Link>
-                    <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                    >
-                        <h1 className="text-4xl font-bold text-gray-900 tracking-tight mb-2">Book an Appointment</h1>
-                        <p className="text-lg text-gray-600">Schedule a visit with <span className="font-semibold text-primary-600">{params.clinicSlug}</span></p>
-                    </motion.div>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="mb-10">
-                    <div className="flex justify-between items-center relative px-2">
-                        <div className="absolute left-0 top-1/2 w-full h-1.5 bg-gray-200 -z-10 rounded-full" />
-                        <motion.div
-                            className="absolute left-0 top-1/2 h-1.5 bg-primary-600 -z-10 rounded-full"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
-                            transition={{ duration: 0.5, ease: "easeInOut" }}
-                        />
-                        {STEPS.map((step) => (
-                            <div key={step.id} className="flex flex-col items-center relative group">
-                                <motion.div
-                                    initial={false}
-                                    animate={{
-                                        backgroundColor: currentStep >= step.id ? "#2563eb" : "#ffffff",
-                                        borderColor: currentStep >= step.id ? "#2563eb" : "#e5e7eb",
-                                        scale: currentStep === step.id ? 1.1 : 1,
-                                    }}
-                                    transition={{ duration: 0.3 }}
-                                    className={`w-10 h-10 rounded-full flex items-center justify-center border-2 shadow-sm ${currentStep >= step.id ? "text-white" : "text-gray-400"}`}
-                                >
-                                    {currentStep > step.id ? <Check className="w-6 h-6" /> : <span className="font-bold">{step.id}</span>}
-                                </motion.div>
-                                <span className={`absolute -bottom-8 text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-colors duration-300 ${currentStep >= step.id ? "text-primary-700" : "text-gray-400"
-                                    }`}>
-                                    {step.name}
-                                </span>
-                            </div>
-                        ))}
+            <div className="max-w-3xl mx-auto">
+                {/* Progress Steps */}
+                <div className="mb-8">
+                    <div className="flex justify-between items-center relative">
+                        <div className="absolute left-0 top-1/2 w-full h-0.5 bg-gray-200 -z-10" />
+                        {STEPS.map((step) => {
+                            const isCompleted = currentStep > step.id
+                            const isCurrent = currentStep === step.id
+                            return (
+                                <div key={step.id} className="flex flex-col items-center bg-gray-50 px-2">
+                                    <div
+                                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors duration-200 ${isCompleted || isCurrent
+                                            ? "bg-primary-600 text-white"
+                                            : "bg-gray-200 text-gray-500"
+                                            } `}
+                                    >
+                                        {isCompleted ? <Check className="w-5 h-5" /> : step.id}
+                                    </div>
+                                    <span className={`text-xs mt-2 font-medium ${isCurrent ? "text-primary-600" : "text-gray-500"} `}>
+                                        {step.name}
+                                    </span>
+                                </div>
+                            )
+                        })}
                     </div>
                 </div>
 
-                {/* Content Card */}
-                <div className="bg-white rounded-2xl shadow-xl overflow-hidden min-h-[400px] flex flex-col">
-                    <div className="flex-1 p-8 overflow-hidden relative">
-                        <AnimatePresence initial={false} custom={direction} mode="wait">
+                <Card className="overflow-hidden shadow-xl border-0">
+                    <div className="bg-primary-600 p-6 text-white">
+                        <h1 className="text-2xl font-bold">Book Appointment</h1>
+                        <p className="text-primary-100">Step {currentStep} of {STEPS.length}: {STEPS[currentStep - 1].description}</p>
+                    </div>
+
+                    <CardContent className="p-6">
+                        <AnimatePresence mode="wait" custom={direction}>
                             <motion.div
                                 key={currentStep}
-                                custom={direction}
-                                variants={variants}
-                                initial="enter"
-                                animate="center"
-                                exit="exit"
-                                transition={{
-                                    x: { type: "spring", stiffness: 300, damping: 30 },
-                                    opacity: { duration: 0.2 },
-                                }}
-                                className="h-full"
+                                initial={{ x: direction > 0 ? 20 : -20, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                exit={{ x: direction > 0 ? -20 : 20, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
                             >
-                                {/* Step Content */}
+                                {/* Step 1: Service */}
                                 {currentStep === 1 && (
-                                    <div className="space-y-6">
-                                        <div>
-                                            <h2 className="text-xl font-semibold">Select a Service</h2>
-                                            <p className="text-gray-500">Choose the type of appointment you need.</p>
-                                        </div>
-                                        <ServiceSelection
-                                            clinicSlug={params.clinicSlug}
-                                            selectedServiceId={selectedService?.id}
-                                            onSelect={handleServiceSelect}
-                                        />
-                                    </div>
+                                    <ServiceSelection
+                                        clinicSlug={params.clinicSlug}
+                                        selectedServiceId={selectedService?.id}
+                                        onSelect={setSelectedService}
+                                    />
                                 )}
+
+                                {/* Step 2: Vet */}
                                 {currentStep === 2 && (
-                                    <div className="space-y-6">
-                                        <div>
-                                            <h2 className="text-xl font-semibold">Choose a Veterinarian</h2>
-                                            <p className="text-gray-500">Select a preferred vet or choose "Any available".</p>
-                                        </div>
-                                        <VetSelection
-                                            clinicSlug={params.clinicSlug}
-                                            selectedVetId={selectedVet?.id} // undefined if null
-                                            onSelect={handleVetSelect}
-                                        />
-                                    </div>
+                                    <VetSelection
+                                        clinicSlug={params.clinicSlug}
+                                        selectedVetId={selectedVet?.id}
+                                        onSelect={setSelectedVet}
+                                    />
                                 )}
-                                {currentStep === 3 && (
-                                    <div className="space-y-6">
-                                        <div>
-                                            <h2 className="text-xl font-semibold">Select Date & Time</h2>
-                                            <p className="text-gray-500">Pick a slot that works for you.</p>
-                                        </div>
-                                        <TimeSelection
-                                            clinicSlug={params.clinicSlug}
-                                            serviceId={selectedService?.id || ""}
-                                            vetId={selectedVet?.id}
-                                            selectedDate={selectedDate}
-                                            selectedTime={selectedTime}
-                                            onSelect={handleTimeSelect}
-                                        />
-                                    </div>
+
+                                {/* Step 3: Time */}
+                                {currentStep === 3 && selectedService && (
+                                    <TimeSelection
+                                        clinicSlug={params.clinicSlug}
+                                        serviceId={selectedService.id}
+                                        vetId={selectedVet?.id}
+                                        selectedDate={selectedDate}
+                                        selectedTime={selectedTime || undefined}
+                                        onSelect={(date, time) => {
+                                            setSelectedDate(date)
+                                            setSelectedTime(time)
+                                        }}
+                                    />
                                 )}
+
+                                {/* Step 4: Details */}
                                 {currentStep === 4 && (
-                                    <div className="space-y-6">
-                                        <div>
-                                            <h2 className="text-xl font-semibold">Your Details</h2>
-                                            <p className="text-gray-500">Tell us about yourself and your pet.</p>
-                                        </div>
-                                        <DetailsForm
-                                            defaultValues={bookingDetails}
-                                            onChange={handleDetailsChange}
-                                        />
-                                    </div>
+                                    <DetailsForm
+                                        defaultValues={details}
+                                        onChange={setDetails}
+                                        emailExists={emailExists}
+                                        hasPassword={hasPassword}
+                                        isCheckingEmail={isCheckingEmail}
+                                        showPasswordField={showPasswordField}
+                                    />
                                 )}
-                                {currentStep === 5 && (
-                                    <div className="space-y-6">
-                                        <div>
-                                            <h2 className="text-xl font-semibold">Confirm Booking</h2>
-                                            <p className="text-gray-500">Review your appointment details.</p>
+
+                                {/* Step 5: Payment */}
+                                {
+                                    currentStep === 5 && (
+                                        <div className="space-y-6">
+                                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className="text-gray-600">Service Total</span>
+                                                    <span className="font-semibold text-lg">${selectedService?.price}</span>
+                                                </div>
+                                                {selectedService?.depositAmount! > 0 && (
+                                                    <div className="flex justify-between items-center text-primary-700 bg-primary-50 p-2 rounded">
+                                                        <span className="font-medium">Deposit Required</span>
+                                                        <span className="font-bold">${selectedService?.depositAmount}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <Elements stripe={stripePromise} options={{
+                                                mode: 'payment',
+                                                amount: Math.round((selectedService?.depositAmount || selectedService?.price || 0) * 100),
+                                                currency: 'aud',
+                                                appearance: { theme: 'stripe' }
+                                            }}>
+                                                <PaymentForm
+                                                    amount={selectedService?.depositAmount || selectedService?.price || 0}
+                                                    onSuccess={handlePaymentSuccess}
+                                                />
+                                            </Elements>
                                         </div>
-                                        <BookingSummary
-                                            serviceName={selectedService?.name}
-                                            servicePrice={selectedService?.price}
-                                            vetName={selectedVet?.name}
-                                            date={selectedDate}
-                                            time={selectedTime}
-                                            details={bookingDetails}
-                                        />
-                                    </div>
+                                    )
+                                }
+
+                                {/* Step 6: Confirm */}
+                                {currentStep === 6 && (
+                                    <BookingSummary
+                                        serviceName={selectedService?.name}
+                                        servicePrice={selectedService?.price}
+                                        vetName={selectedVet?.name}
+                                        date={selectedDate}
+                                        time={selectedTime || undefined}
+                                        details={details}
+                                    />
                                 )}
-                            </motion.div>
-                        </AnimatePresence>
-                    </div>
+                            </motion.div >
+                        </AnimatePresence >
 
-                    {/* Footer / Navigation */}
-                    <div className="bg-gray-50 px-8 py-4 border-t border-gray-100 flex justify-between items-center">
-                        <Button
-                            variant="ghost"
-                            onClick={prevStep}
-                            disabled={currentStep === 1 || isSubmitting}
-                            className={currentStep === 1 ? "invisible" : ""}
-                        >
-                            <ChevronLeft className="w-4 h-4 mr-2" />
-                            Back
-                        </Button>
+                        {/* Navigation Buttons */}
+                        < div className="flex justify-between mt-8 pt-6 border-t" >
+                            <Button
+                                variant="outline"
+                                onClick={prevStep}
+                                disabled={currentStep === 1 || isSubmitting}
+                                className={currentStep === 1 ? "invisible" : ""}
+                            >
+                                <ChevronLeft className="w-4 h-4 mr-2" />
+                                Back
+                            </Button>
 
-                        <Button
-                            onClick={nextStep}
-                            disabled={
-                                (currentStep === 1 && !selectedService) || // Require service selection
-                                (currentStep === 3 && (!selectedDate || !selectedTime)) || // Require date & time
-                                (currentStep === 4 && (!bookingDetails.ownerName || !bookingDetails.ownerEmail || !bookingDetails.petName)) || // Require details
-                                isSubmitting
+                            {
+                                currentStep === 6 ? (
+                                    <Button
+                                        onClick={handleSubmit}
+                                        disabled={isSubmitting}
+                                        className="bg-primary-600 hover:bg-primary-700 min-w-[140px]"
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                Booking...
+                                            </>
+                                        ) : (
+                                            <>
+                                                Confirm Booking
+                                                <Check className="w-4 h-4 ml-2" />
+                                            </>
+                                        )}
+                                    </Button>
+                                ) : currentStep === 5 ? (
+                                    // Payment step has its own button in PaymentForm
+                                    <div />
+                                ) : (
+                                    <Button
+                                        onClick={nextStep}
+                                        disabled={
+                                            (currentStep === 1 && !selectedService) ||
+                                            (currentStep === 3 && !selectedTime) ||
+                                            (currentStep === 4 && (
+                                                !details.ownerName ||
+                                                !details.ownerEmail ||
+                                                (emailExists && hasPassword) || // Block if exists with password
+                                                (emailExists && !hasPassword && (!details.password || details.password.length < 8)) || // Block claim if no password
+                                                (showPasswordField && (!details.password || details.password.length < 8)) // Block upsell if no password
+                                            ))
+                                        }
+                                    >
+                                        Next Step
+                                        <ChevronRight className="w-4 h-4 ml-2" />
+                                    </Button>
+                                )
                             }
-                            className="bg-primary-600 hover:bg-primary-700 text-white min-w-[140px]"
-                        >
-                            {isSubmitting ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Booking...
-                                </>
-                            ) : currentStep === STEPS.length ? (
-                                "Confirm Booking"
-                            ) : (
-                                <>
-                                    Continue
-                                    <ChevronRight className="w-4 h-4 ml-2" />
-                                </>
-                            )}
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        </div >
+                    </CardContent >
+                </Card >
+            </div >
+        </div >
     )
 }
+

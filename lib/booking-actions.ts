@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { startOfDay, endOfDay, addMinutes, format, parse, isBefore, isAfter, set } from "date-fns"
 import { Appointment, User } from "@prisma/client"
 import { sendAppointmentConfirmation } from "@/lib/email"
+import bcrypt from "bcryptjs"
 
 export async function getServices(clinicSlug: string) {
     try {
@@ -79,23 +80,40 @@ export async function getVets(clinicSlug: string) {
 
 export async function getAvailableSlots(date: Date, clinicSlug: string, serviceId: string, vetId?: string) {
     try {
-        // 1. Fetch Clinic & Service
+        // 1. Fetch Clinic, Service, and Holidays
         const clinic = await prisma.clinic.findUnique({
             where: { slug: clinicSlug },
             include: {
                 users: {
                     where: { role: 'VET', isActive: true, availableForBooking: true }
+                },
+                publicHolidays: {
+                    where: { date: startOfDay(date) }
+                },
+                resources: {
+                    where: { isActive: true }
                 }
             }
         })
 
         const service = await prisma.service.findUnique({
-            where: { id: serviceId }
+            where: { id: serviceId },
+            include: {
+                resources: {
+                    include: { resource: true }
+                }
+            }
         })
 
         if (!clinic || !service) return []
 
-        // 2. Determine Business Hours for the day
+        // 2. Check for Public Holiday
+        if (clinic.publicHolidays.length > 0) {
+            console.log(`[getAvailableSlots] Date ${date} is a public holiday: ${clinic.publicHolidays[0].name}`)
+            return []
+        }
+
+        // 3. Determine Business Hours for the day
         const dayOfWeek = format(date, 'EEEE').toLowerCase() // 'monday', 'tuesday', etc.
         const businessHours = clinic.businessHours as any
         const dayConfig = businessHours[dayOfWeek]
@@ -107,7 +125,7 @@ export async function getAvailableSlots(date: Date, clinicSlug: string, serviceI
         const closeTime = parse(dayConfig.close, 'HH:mm', date)
         const now = new Date()
 
-        // 3. Fetch Existing Appointments
+        // 4. Fetch Existing Appointments
         const appointments = await prisma.appointment.findMany({
             where: {
                 clinicId: clinic.id,
@@ -118,10 +136,13 @@ export async function getAvailableSlots(date: Date, clinicSlug: string, serviceI
                 status: {
                     notIn: ['CANCELED', 'NO_SHOW', 'PENDING']
                 }
+            },
+            include: {
+                resources: true // Include booked resources
             }
         })
 
-        // 4. Generate Slots
+        // 5. Generate Slots
         const slots: string[] = []
         const interval = 30 // minutes
         let currentSlot = openTime
@@ -135,28 +156,56 @@ export async function getAvailableSlots(date: Date, clinicSlug: string, serviceI
             }
         }
 
+        // Required Resources for this Service
+        const requiredResources = service.resources.map(sr => sr.resource)
+
         while (isBefore(addMinutes(currentSlot, service.duration), closeTime) || currentSlot.getTime() === closeTime.getTime()) {
             const slotEnd = addMinutes(currentSlot, service.duration)
 
             let isSlotAvailable = false
 
-            if (vetId) {
-                // Specific Vet
-                const vetAppointments = appointments.filter((a: Appointment) => a.vetId === vetId)
-                const hasConflict = vetAppointments.some((appt: Appointment) => {
-                    const apptStart = appt.appointmentDate
-                    const apptEnd = addMinutes(apptStart, appt.duration)
-                    return (
-                        (currentSlot >= apptStart && currentSlot < apptEnd) ||
-                        (slotEnd > apptStart && slotEnd <= apptEnd) ||
-                        (currentSlot <= apptStart && slotEnd >= apptEnd)
-                    )
-                })
-                isSlotAvailable = !hasConflict
-            } else {
-                // Any Vet
-                const availableVets = clinic.users.filter((vet: User) => {
-                    const vetAppointments = appointments.filter((a: Appointment) => a.vetId === vet.id)
+            // Check Resource Availability
+            let resourcesAvailable = true
+            if (requiredResources.length > 0) {
+                // For each required resource type, check if we have an available instance
+                // This is a simplified check: assumes we need 1 of each required resource type
+                // In a real app, we'd match specific resource IDs or types more robustly
+
+                // Group required resources by type (e.g. ROOM, EQUIPMENT) - actually we link specific resources to services in this schema
+                // So we need to check if *those specific resources* are free? 
+                // Wait, usually you link a "type" requirement, but here we linked specific resources in ServiceResource.
+                // Let's assume ServiceResource links specific resources (e.g. "Surgery Room 1").
+                // If so, we just check if that specific resource is booked.
+
+                for (const reqRes of requiredResources) {
+                    const isResourceBooked = appointments.some(appt => {
+                        const apptStart = appt.appointmentDate
+                        const apptEnd = addMinutes(apptStart, appt.duration)
+                        const overlaps = (
+                            (currentSlot >= apptStart && currentSlot < apptEnd) ||
+                            (slotEnd > apptStart && slotEnd <= apptEnd) ||
+                            (currentSlot <= apptStart && slotEnd >= apptEnd)
+                        )
+                        // Check if this appointment uses the required resource
+                        // We need to fetch appointment resources. 
+                        // The schema has AppointmentResource.
+                        // We included `resources` in the appointment fetch above.
+                        const usesResource = appt.resources.some(ar => ar.resourceId === reqRes.id)
+
+                        return overlaps && usesResource
+                    })
+
+                    if (isResourceBooked) {
+                        resourcesAvailable = false
+                        break
+                    }
+                }
+            }
+
+            if (resourcesAvailable) {
+                if (vetId) {
+                    // Specific Vet
+                    const vetAppointments = appointments.filter((a: Appointment) => a.vetId === vetId)
                     const hasConflict = vetAppointments.some((appt: Appointment) => {
                         const apptStart = appt.appointmentDate
                         const apptEnd = addMinutes(apptStart, appt.duration)
@@ -166,9 +215,24 @@ export async function getAvailableSlots(date: Date, clinicSlug: string, serviceI
                             (currentSlot <= apptStart && slotEnd >= apptEnd)
                         )
                     })
-                    return !hasConflict
-                })
-                isSlotAvailable = availableVets.length > 0
+                    isSlotAvailable = !hasConflict
+                } else {
+                    // Any Vet
+                    const availableVets = clinic.users.filter((vet: User) => {
+                        const vetAppointments = appointments.filter((a: Appointment) => a.vetId === vet.id)
+                        const hasConflict = vetAppointments.some((appt: Appointment) => {
+                            const apptStart = appt.appointmentDate
+                            const apptEnd = addMinutes(apptStart, appt.duration)
+                            return (
+                                (currentSlot >= apptStart && currentSlot < apptEnd) ||
+                                (slotEnd > apptStart && slotEnd <= apptEnd) ||
+                                (currentSlot <= apptStart && slotEnd >= apptEnd)
+                            )
+                        })
+                        return !hasConflict
+                    })
+                    isSlotAvailable = availableVets.length > 0
+                }
             }
 
             if (isSlotAvailable) {
@@ -208,6 +272,8 @@ export async function createBooking(data: {
         petAge: string
         petGender: string
     }
+    stripePaymentIntentId?: string
+    password?: string // Optional password for account creation/claiming
 }) {
     try {
         const clinic = await prisma.clinic.findUnique({
@@ -226,8 +292,50 @@ export async function createBooking(data: {
             where: { email: data.details.ownerEmail }
         })
 
-        if (!owner) {
-            // Split name
+        // Handle Password / Account Creation Logic
+        if (data.password) {
+            const hashedPassword = await bcrypt.hash(data.password, 10)
+
+            if (owner) {
+                // User exists - check if unclaimed (no password)
+                if (!owner.password) {
+                    // Claim account: Update password and details
+                    owner = await prisma.user.update({
+                        where: { id: owner.id },
+                        data: {
+                            firstName: data.details.ownerName.split(' ')[0],
+                            lastName: data.details.ownerName.split(' ').slice(1).join(' ') || '',
+                            phone: data.details.ownerPhone,
+                            password: hashedPassword,
+                            role: 'PET_OWNER', // Ensure role
+                        }
+                    })
+                } else {
+                    // User has password - technically shouldn't reach here if UI checks correctly,
+                    // but we just proceed using the existing user (ignoring the new password)
+                    // or we could throw an error. For booking flow, let's proceed but maybe log warning.
+                    console.warn("Booking attempted with password for existing user with password.")
+                }
+            } else {
+                // Create NEW user with password
+                const nameParts = data.details.ownerName.split(' ')
+                const firstName = nameParts[0]
+                const lastName = nameParts.slice(1).join(' ') || ''
+
+                owner = await prisma.user.create({
+                    data: {
+                        email: data.details.ownerEmail,
+                        firstName,
+                        lastName,
+                        phone: data.details.ownerPhone,
+                        role: 'PET_OWNER',
+                        clinicId: clinic.id,
+                        password: hashedPassword, // Set password
+                    }
+                })
+            }
+        } else if (!owner) {
+            // No password provided, and user doesn't exist -> Create GUEST (passwordless)
             const nameParts = data.details.ownerName.split(' ')
             const firstName = nameParts[0]
             const lastName = nameParts.slice(1).join(' ') || ''
@@ -240,6 +348,7 @@ export async function createBooking(data: {
                     phone: data.details.ownerPhone,
                     role: 'PET_OWNER',
                     clinicId: clinic.id,
+                    // No password
                 }
             })
         }

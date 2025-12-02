@@ -312,3 +312,29 @@ export async function updateAppointmentTime(
         return { success: false, error: "Failed to update appointment" }
     }
 }
+
+export async function getUninvoicedAppointments() {
+    const session = await auth()
+    if (!session?.user?.clinicId) return []
+
+    try {
+        const appointments = await prisma.appointment.findMany({
+            where: {
+                clinicId: session.user.clinicId,
+                status: "COMPLETED",
+                invoice: null, // Only fetch appointments without an invoice
+            },
+            include: {
+                pet: {
+                    include: { owner: true },
+                },
+                service: true,
+            },
+            orderBy: { appointmentDate: "desc" },
+        })
+        return appointments
+    } catch (error) {
+        console.error("Failed to fetch uninvoiced appointments:", error)
+        return []
+    }
+}

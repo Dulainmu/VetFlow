@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { Heart, Clock, MapPin, Phone, ArrowRight, Stethoscope, Syringe, Scissors, Star, Activity, Calendar, Check } from "lucide-react"
 import { PricingSection } from "@/components/landing/pricing-section"
-import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function LandingPage() {
     const { scrollY } = useScroll()
@@ -45,7 +44,6 @@ export default function LandingPage() {
                         <Link href="#about" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">About</Link>
                         <Link href="#pricing" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Pricing</Link>
                         <Link href="#team" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Team</Link>
-                        <ThemeToggle />
                         <Link href="/book/happy-paws">
                             <Button className="bg-primary-600 hover:bg-primary-700 text-white rounded-full px-6 shadow-lg shadow-primary-600/20 transition-all hover:scale-105">
                                 Book Now

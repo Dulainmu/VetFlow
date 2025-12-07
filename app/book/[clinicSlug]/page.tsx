@@ -15,7 +15,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { PayHereButton } from "@/components/booking/payhere-button"
 import { getPayHerePaymentDetails } from "@/lib/payhere-actions"
-import { ThemeToggle } from "@/components/theme-toggle"
 
 
 const STEPS = [
@@ -236,12 +235,7 @@ export default function BookingPage({ params }: { params: { clinicSlug: string }
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
-            {/* Theme Toggle */}
-            <div className="absolute top-4 right-4 z-50">
-                <ThemeToggle />
-            </div>
-
+        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
                 {/* Progress Steps */}
                 <div className="mb-8">

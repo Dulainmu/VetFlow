@@ -27,7 +27,7 @@ export async function getPayHerePaymentDetails(bookingId: string) {
 
         const config = getPayHereConfig()
         // Override return URL to be specific if needed
-        config.returnUrl = `${process.env.NEXT_PUBLIC_APP_URL}/portal/appointments?payment=success&bookingId=${booking.id}`
+        config.returnUrl = `${process.env.NEXT_PUBLIC_APP_URL}/book/${booking.clinic.slug}/success?bookingId=${booking.id}`
 
         const hash = generatePayHereHash(
             booking.id,

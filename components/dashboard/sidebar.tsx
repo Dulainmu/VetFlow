@@ -12,7 +12,8 @@ import {
     Stethoscope,
     PawPrint,
     BarChart3,
-    Upload
+    Upload,
+    Truck
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { signOut } from "next-auth/react"
@@ -47,6 +48,13 @@ const routes = [
         icon: Users,
         href: "/dashboard/settings/staff",
         color: "text-green-600",
+    },
+    {
+        label: "My Schedule",
+        icon: Truck,
+        href: "/dashboard/driver/schedule",
+        color: "text-orange-600",
+        roles: ["DRIVER", "VET"], // Only show to drivers and vets
     },
     {
         label: "Data Import",

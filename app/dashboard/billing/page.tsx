@@ -14,8 +14,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
 import Link from "next/link"
-import { Plus } from "lucide-react"
 import { CreateInvoiceDialog } from "@/components/billing/create-invoice-dialog"
+import { PageHeader, PageContainer } from "@/components/shared"
 
 export default async function BillingPage() {
     const session = await auth()
@@ -24,15 +24,12 @@ export default async function BillingPage() {
     const invoices = await getInvoices()
 
     return (
-        <div className="flex-1 space-y-4 p-8 pt-6">
-            <div className="flex items-center justify-between space-y-2">
-                <h2 className="text-3xl font-bold tracking-tight">Billing & Invoices</h2>
-                <div className="flex items-center space-x-2">
-                    <CreateInvoiceDialog />
-                </div>
-            </div>
+        <PageContainer>
+            <PageHeader title="Billing & Invoices">
+                <CreateInvoiceDialog />
+            </PageHeader>
 
-            <div className="rounded-md border">
+            <div className="rounded-md border animate-scale-in bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -52,8 +49,12 @@ export default async function BillingPage() {
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            invoices.map((invoice) => (
-                                <TableRow key={invoice.id}>
+                            invoices.map((invoice, idx) => (
+                                <TableRow
+                                    key={invoice.id}
+                                    className="animate-fade-in"
+                                    style={{ animationDelay: `${idx * 50}ms` }}
+                                >
                                     <TableCell className="font-medium">
                                         {invoice.invoiceNumber}
                                     </TableCell>
@@ -66,12 +67,12 @@ export default async function BillingPage() {
                                             {invoice.appointment?.pet.name}
                                         </div>
                                     </TableCell>
-                                    <TableCell>${invoice.total.toFixed(2)}</TableCell>
+                                    <TableCell>Rs. {invoice.total.toFixed(2)}</TableCell>
                                     <TableCell>
                                         <Badge
                                             variant={
                                                 invoice.status === "PAID"
-                                                    ? "default" // Using default (primary color) for paid
+                                                    ? "default"
                                                     : invoice.status === "OVERDUE"
                                                         ? "destructive"
                                                         : "secondary"
@@ -84,7 +85,7 @@ export default async function BillingPage() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <Button variant="ghost" size="sm" asChild>
+                                        <Button variant="ghost" size="sm" asChild className="hover:bg-primary/10">
                                             <Link href={`/dashboard/billing/${invoice.id}`}>
                                                 View
                                             </Link>
@@ -96,6 +97,6 @@ export default async function BillingPage() {
                     </TableBody>
                 </Table>
             </div>
-        </div>
+        </PageContainer>
     )
 }

@@ -43,4 +43,4 @@
   - Vet filtering.
 
 ## Phase 2: Enhanced Features
-*See [ROADMAP.md](./ROADMAP.md) for details.*
+*See [ROADMAP.md](./ROADMAP.md) for details on Phase 2 (Data Migration, Role Management, Deposit Payments) and Phase 3 (Client Portal).*

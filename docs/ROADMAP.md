@@ -14,7 +14,7 @@
 - ✅ Basic authentication & authorization
 
 **Success Metrics:**
-- 3 pilot clinics onboarded
+- 3 pilot clinics onboarded (Letters of Intent secured)
 - 100+ appointments booked online
 - 70%+ reduction in no-shows
 - System uptime 99.5%+
@@ -29,35 +29,34 @@
   - Invite staff members
   - Granular permissions
   - Activity logs
-  
+
+- [ ] **Data Migration / Onboarding**
+  - CSV Client/Patient Import
+  - One-click migration tools
+  - White-glove onboarding process
+
+- [ ] **Payment Integration (PayHere) - Phase 2a**
+  - Focus: "No-Show" Prevention (Sri Lanka)
+  - Online deposits for bookings (LKR)
+  - Cancellation fees
+
 - [ ] **Reporting & Analytics**
   - Appointment trends
   - Revenue reports
   - Vet performance metrics
   - Export to PDF/CSV
-  
-- [ ] **Billing & Invoicing**
+
+- [ ] **Billing & Invoicing (Clinic Side)**
   - Generate invoices
-  -m Track payments
-  - Payment ethods (cash, card, bank transfer)
+  - Track payments
+  - Payment methods (cash, card, bank transfer)
   - GST calculation
-  
-- [ ] **Payment Integration (Stripe)**
-  - Online payment when booking
-  - Optional deposit requirement
-  - Automatic refunds
-  
+
 - [ ] **Advanced Availability**
   - Recurring blocked time
   - Public holidays
   - Multi-vet scheduling
   - Resource allocation (rooms, equipment)
-  
-- [ ] **Client Portal**
-  - Pet owners login
-  - View appointment history
-  - Download vaccination certificates
-  - Update pet information
 
 **Success Metrics:**
 - 10 paying clinics
@@ -71,6 +70,12 @@
 **Goal:** Stand out from competitors with unique features
 
 **Features:**
+- [ ] **Client Portal**
+  - Pet owners login
+  - View appointment history
+  - Download vaccination certificates
+  - Update pet information
+
 - [ ] **Mobile Apps (React Native)**
   - iOS app
   - Android app
@@ -269,7 +274,7 @@
 - Extensive integrations
 
 **VetFlow Advantages:**
-- 💰 **10x cheaper** ($49/mo vs. $499/mo)
+- 💰 **Better Value** ($99/mo vs. $499/mo)
 - 🚀 **Faster setup** (5 min vs. days)
 - 🎨 **Modern, intuitive UI**
 - 🇦🇺 **Australian-first** (built for local clinics)
@@ -289,7 +294,7 @@
 - Competitive pricing
 
 **VetFlow Advantages:**
-- 💰 **Cheaper** ($49/mo vs. $99/mo)
+- 💰 **Competitive** ($99/mo vs. $99/mo)
 - 📊 **Includes practice management** (not just booking)
 - 🇦🇺 **Australian hosting** (data sovereignty)
 - 🔧 **More customizable**
@@ -370,14 +375,14 @@
 
 ### **Pricing Tiers**
 
-**Starter - $49/month**
+**Starter - $99/month**
 - 1 location
 - 2 vets
 - 100 appointments/month
 - Basic reporting
 - Email support
 
-**Professional - $99/month** (Most Popular)
+**Professional - $199/month** (Most Popular)
 - 1-3 locations
 - Up to 5 vets
 - Unlimited appointments
@@ -403,21 +408,21 @@
 
 **Year 1:**
 - Clinics: 50
-- Average revenue per clinic: $75/month
-- MRR: $3,750
-- ARR: $45,000
+- Average revenue per clinic: $150/month
+- MRR: $7,500
+- ARR: $90,000
 
 **Year 2:**
 - Clinics: 200
-- Average revenue per clinic: $90/month
-- MRR: $18,000
-- ARR: $216,000
+- Average revenue per clinic: $180/month
+- MRR: $36,000
+- ARR: $432,000
 
 **Year 3:**
 - Clinics: 500
-- Average revenue per clinic: $100/month
-- MRR: $50,000
-- ARR: $600,000
+- Average revenue per clinic: $200/month
+- MRR: $100,000
+- ARR: $1,200,000
 
 ---
 

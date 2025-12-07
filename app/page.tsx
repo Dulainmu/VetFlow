@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { Heart, Clock, MapPin, Phone, ArrowRight, Stethoscope, Syringe, Scissors, Star, Activity, Calendar, Check } from "lucide-react"
+import { PricingSection } from "@/components/landing/pricing-section"
 
 export default function LandingPage() {
     const { scrollY } = useScroll()
@@ -41,10 +42,8 @@ export default function LandingPage() {
                     <div className="hidden md:flex items-center space-x-8">
                         <Link href="#services" className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">Services</Link>
                         <Link href="#about" className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">About</Link>
+                        <Link href="#pricing" className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">Pricing</Link>
                         <Link href="#team" className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">Team</Link>
-                        <Link href="/login" className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors">
-                            Patient Login
-                        </Link>
                         <Link href="/book/happy-paws">
                             <Button className="bg-primary-600 hover:bg-primary-700 text-white rounded-full px-6 shadow-lg shadow-primary-600/20 transition-all hover:scale-105">
                                 Book Now
@@ -267,6 +266,9 @@ export default function LandingPage() {
                     </div>
                 </div>
             </section>
+
+            {/* Pricing Section */}
+            <PricingSection />
 
             {/* About Section */}
             <section id="about" className="py-32 bg-[#0F172A] text-white overflow-hidden relative">

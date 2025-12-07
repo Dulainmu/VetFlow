@@ -51,6 +51,35 @@ export function CalendarView({ date, appointments, availabilityRules, vets }: Ca
         newDate.setHours(hour, 0, 0, 0)
 
         // Optimistic UI update could go here, but for now we'll rely on revalidation
+        // Check for conflicts before sending to server (Quick Client Check)
+        const newStart = newDate
+        const droppedApt = appointments.find(a => a.id === aptId)
+        if (!droppedApt) return
+
+        const newEnd = new Date(newStart.getTime() + droppedApt.duration * 60000)
+
+        // Find conflicts
+        const hasConflict = appointments.some(apt => {
+            if (apt.id === aptId) return false // Ignore self
+            if (apt.vetId !== vetId) return false // Only check target vet/resource
+            if (apt.status === "CANCELED") return false
+
+            const aptStart = new Date(apt.appointmentDate)
+            const aptEnd = new Date(aptStart.getTime() + apt.duration * 60000)
+
+            // Overlap: (StartA < EndB) and (EndA > StartB)
+            return newStart < aptEnd && newEnd > aptStart
+        })
+
+        if (hasConflict) {
+            toast({
+                title: "Conflict Detected",
+                description: "This slot is already booked for this resource.",
+                variant: "destructive",
+            })
+            return
+        }
+
         const result = await updateAppointmentTime(aptId, newDate)
 
         if (result.success) {

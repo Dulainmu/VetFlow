@@ -735,5 +735,6 @@ model PublicHoliday {
 enum ResourceType {
   ROOM
   EQUIPMENT
+  VEHICLE
   OTHER
 }

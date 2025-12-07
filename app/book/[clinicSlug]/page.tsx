@@ -13,14 +13,11 @@ import { checkEmailExists } from "@/lib/auth-actions"
 import { format, addMinutes } from "date-fns"
 import { Check, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, User, ArrowRight, Loader2, CreditCard, Store } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Elements } from "@stripe/react-stripe-js"
-import { loadStripe } from "@stripe/stripe-js"
-import { PaymentForm } from "@/components/booking/payment-form"
 import Link from "next/link"
 import GuestUpsellDialog from "@/components/booking/guest-upsell-dialog"
+import { PayHereButton } from "@/components/booking/payhere-button"
+import { getPayHerePaymentDetails } from "@/lib/payhere-actions"
 
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 const STEPS = [
     { id: 1, name: "Service", description: "Choose a service" },
@@ -96,8 +93,9 @@ export default function BookingPage({ params }: { params: { clinicSlug: string }
     const [showPasswordField, setShowPasswordField] = useState(false) // Force show password field
 
     // Payment State
-    const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null)
+    // Payment State
     const [paymentMethod, setPaymentMethod] = useState<'ONLINE' | 'CLINIC'>('ONLINE')
+    const [payHereData, setPayHereData] = useState<any>(null)
 
     // ... (Keep existing useEffects for loading data)
     useEffect(() => {
@@ -197,10 +195,7 @@ export default function BookingPage({ params }: { params: { clinicSlug: string }
         setCurrentStep((prev) => Math.max(prev - 1, 1))
     }
 
-    const handlePaymentSuccess = (paymentIntentId: string) => {
-        setPaymentIntentId(paymentIntentId)
-        nextStep()
-    }
+
 
     const handleSubmit = async () => {
         if (!selectedService || !selectedDate || !selectedTime) return
@@ -214,14 +209,25 @@ export default function BookingPage({ params }: { params: { clinicSlug: string }
                 date: selectedDate,
                 time: selectedTime,
                 details,
-                stripePaymentIntentId: paymentIntentId || undefined,
                 password: details.password || undefined, // Pass password
                 paymentMethod: paymentMethod // Pass payment method
             })
 
             if (result.success) {
-                setBookingId(result.bookingId!)
-                // Success state handled by UI render
+                const bId = result.bookingId!
+                setBookingId(bId)
+
+                if (paymentMethod === 'ONLINE') {
+                    // Fetch PayHere Details
+                    const payData = await getPayHerePaymentDetails(bId)
+                    if (payData && !payData.error) {
+                        setPayHereData(payData)
+                    } else {
+                        console.error("Failed to get PayHere details")
+                        // Should probably show error, but booking is made. 
+                        // Maybe manual retry?
+                    }
+                }
             } else {
                 alert("Booking failed. Please try again.")
             }
@@ -260,21 +266,40 @@ export default function BookingPage({ params }: { params: { clinicSlug: string }
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
                 <Card className="max-w-md w-full text-center p-8">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Check className="w-8 h-8 text-green-600" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Booking Confirmed!</h2>
-                    <p className="text-gray-600 mb-8">
-                        Your appointment has been successfully scheduled. We've sent a confirmation email to {details.ownerEmail}.
-                    </p>
-                    <div className="space-y-3">
-                        <Link href="/portal/appointments">
-                            <Button className="w-full">View My Appointments</Button>
-                        </Link>
-                        <Link href="/">
-                            <Button variant="outline" className="w-full">Back to Home</Button>
-                        </Link>
-                    </div>
+                    {paymentMethod === 'ONLINE' && payHereData ? (
+                        <>
+                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <CreditCard className="w-8 h-8 text-blue-600" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-gray-900 mb-2">Almost There!</h2>
+                            <p className="text-gray-600 mb-8">
+                                Your booking is held. Please complete the payment to confirm.
+                            </p>
+                            <PayHereButton
+                                config={payHereData.config}
+                                payment={payHereData.payment}
+                                autoSubmit={false}
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <Check className="w-8 h-8 text-green-600" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-gray-900 mb-2">Booking Confirmed!</h2>
+                            <p className="text-gray-600 mb-8">
+                                Your appointment has been successfully scheduled. We've sent a confirmation email and WhatsApp message to {details.ownerEmail}.
+                            </p>
+                            <div className="space-y-3">
+                                <Link href="/portal/appointments">
+                                    <Button className="w-full">View My Appointments</Button>
+                                </Link>
+                                <Link href="/">
+                                    <Button variant="outline" className="w-full">Back to Home</Button>
+                                </Link>
+                            </div>
+                        </>
+                    )}
                 </Card>
             </div>
         )
@@ -382,12 +407,12 @@ export default function BookingPage({ params }: { params: { clinicSlug: string }
                                         <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                                             <div className="flex justify-between items-center mb-2">
                                                 <span className="text-gray-600">Service Total</span>
-                                                <span className="font-semibold text-lg">${selectedService?.price}</span>
+                                                <span className="font-semibold text-lg">Rs. {selectedService?.price}</span>
                                             </div>
                                             {selectedService?.depositAmount! > 0 && (
                                                 <div className="flex justify-between items-center text-primary-700 bg-primary-50 p-2 rounded">
                                                     <span className="font-medium">Deposit Required</span>
-                                                    <span className="font-bold">${selectedService?.depositAmount}</span>
+                                                    <span className="font-bold">Rs. {selectedService?.depositAmount}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -413,17 +438,12 @@ export default function BookingPage({ params }: { params: { clinicSlug: string }
                                         </div>
 
                                         {paymentMethod === 'ONLINE' ? (
-                                            <Elements stripe={stripePromise} options={{
-                                                mode: 'payment',
-                                                amount: Math.round((selectedService?.depositAmount || selectedService?.price || 0) * 100),
-                                                currency: 'aud',
-                                                appearance: { theme: 'stripe' }
-                                            }}>
-                                                <PaymentForm
-                                                    amount={selectedService?.depositAmount || selectedService?.price || 0}
-                                                    onSuccess={handlePaymentSuccess}
-                                                />
-                                            </Elements>
+                                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 text-blue-800">
+                                                <p className="font-medium mb-1">Online Payment Enabled (PayHere)</p>
+                                                <p className="text-sm">
+                                                    You will be redirected to our secure payment gateway to complete your booking.
+                                                </p>
+                                            </div>
                                         ) : (
                                             <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 text-blue-800">
                                                 <p className="text-sm">

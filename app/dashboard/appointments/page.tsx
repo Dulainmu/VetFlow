@@ -12,6 +12,7 @@ import { prisma } from "@/lib/prisma"
 import { CreateAppointmentDialog } from "@/components/appointments/create-appointment-dialog"
 import { CalendarView } from "@/components/appointments/calendar-view"
 import { BlockTimeDialog } from "@/components/appointments/block-time-dialog"
+import { PageHeader, PageContainer } from "@/components/shared"
 
 
 export default async function AppointmentsPage({
@@ -32,7 +33,7 @@ export default async function AppointmentsPage({
     const { appointments, totalPages } = await getAppointments({
         clinicId: session.user.clinicId,
         date,
-        page: view === "calendar" ? 1 : page, // Fetch all for calendar (or increase limit)
+        page: view === "calendar" ? 1 : page,
         limit: view === "calendar" ? 100 : 10,
     })
 
@@ -58,22 +59,19 @@ export default async function AppointmentsPage({
     nextDate.setDate(nextDate.getDate() + 1)
 
     return (
-        <div className="flex-1 space-y-4 p-8 pt-6">
-            <div className="flex items-center justify-between space-y-2">
-                <h2 className="text-3xl font-bold tracking-tight">Appointments</h2>
-                <div className="flex items-center space-x-2">
-                    <BlockTimeDialog clinicId={session.user.clinicId} vets={vets} />
-                    <CreateAppointmentDialog
-                        clinicId={session.user.clinicId}
-                        services={services}
-                        vets={vets}
-                    />
-                </div>
-            </div>
+        <PageContainer>
+            <PageHeader title="Appointments">
+                <BlockTimeDialog clinicId={session.user.clinicId} vets={vets} />
+                <CreateAppointmentDialog
+                    clinicId={session.user.clinicId}
+                    services={services}
+                    vets={vets}
+                />
+            </PageHeader>
 
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-in">
                 <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="icon" asChild>
+                    <Button variant="outline" size="icon" asChild className="card-hover">
                         <Link href={`?date=${format(prevDate, "yyyy-MM-dd")}&view=${view}`}>
                             <ChevronLeft className="h-4 w-4" />
                         </Link>
@@ -84,7 +82,7 @@ export default async function AppointmentsPage({
                             {format(date, "EEEE, MMMM do, yyyy")}
                         </span>
                     </div>
-                    <Button variant="outline" size="icon" asChild>
+                    <Button variant="outline" size="icon" asChild className="card-hover">
                         <Link href={`?date=${format(nextDate, "yyyy-MM-dd")}&view=${view}`}>
                             <ChevronRight className="h-4 w-4" />
                         </Link>
@@ -96,7 +94,7 @@ export default async function AppointmentsPage({
                     </Button>
                 </div>
 
-                <div className="flex items-center space-x-2 bg-muted p-1 rounded-lg">
+                <div className="flex items-center space-x-1 bg-muted p-1 rounded-lg">
                     <Button
                         variant={view === "list" ? "secondary" : "ghost"}
                         size="sm"
@@ -118,18 +116,20 @@ export default async function AppointmentsPage({
                 </div>
             </div>
 
-            {view === "list" ? (
-                <DataTable columns={columns} data={appointments} />
-            ) : (
-                <CalendarView
-                    date={date}
-                    appointments={appointments}
-                    availabilityRules={availabilityRules as any}
-                    vets={vets}
-                />
-            )}
+            <div className="animate-scale-in">
+                {view === "list" ? (
+                    <DataTable columns={columns} data={appointments} />
+                ) : (
+                    <CalendarView
+                        date={date}
+                        appointments={appointments}
+                        availabilityRules={availabilityRules as any}
+                        vets={vets}
+                    />
+                )}
+            </div>
 
-            {/* Simple Pagination */}
+            {/* Pagination */}
             <div className="flex items-center justify-end space-x-2 py-4">
                 <Button
                     variant="outline"
@@ -152,6 +152,6 @@ export default async function AppointmentsPage({
                     </Link>
                 </Button>
             </div>
-        </div >
+        </PageContainer>
     )
 }

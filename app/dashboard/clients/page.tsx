@@ -15,6 +15,7 @@ import { Search, Eye, UserPlus } from "lucide-react"
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { PageHeader, PageContainer } from "@/components/shared"
 
 export default async function ClientsPage({
     searchParams,
@@ -60,33 +61,28 @@ export default async function ClientsPage({
     const totalPages = Math.ceil(totalClients / itemsPerPage)
 
     return (
-        <div className="flex-1 space-y-4 p-8 pt-6">
-            <div className="flex items-center justify-between space-y-2">
-                <h2 className="text-3xl font-bold tracking-tight">Clients</h2>
-                <div className="flex items-center space-x-2">
-                    <Button asChild>
-                        <Link href="/dashboard/clients/new">
-                            <UserPlus className="mr-2 h-4 w-4" />
-                            Add Client
-                        </Link>
-                    </Button>
-                </div>
-            </div>
+        <PageContainer>
+            <PageHeader title="Clients">
+                <Button asChild className="card-hover">
+                    <Link href="/dashboard/clients/new">
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Add Client
+                    </Link>
+                </Button>
+            </PageHeader>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 animate-fade-in">
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                         placeholder="Search clients or pets..."
                         className="pl-8"
                         defaultValue={query}
-                    // Note: In a real app, we'd use a client component for search debouncing
-                    // For now, we'll rely on form submission or simple navigation if we add it
                     />
                 </div>
             </div>
 
-            <div className="rounded-md border">
+            <div className="rounded-md border animate-scale-in bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -105,13 +101,17 @@ export default async function ClientsPage({
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            clients.map((client) => (
-                                <TableRow key={client.id}>
+                            clients.map((client, idx) => (
+                                <TableRow
+                                    key={client.id}
+                                    className="animate-fade-in"
+                                    style={{ animationDelay: `${idx * 50}ms` }}
+                                >
                                     <TableCell className="font-medium">
                                         <div className="flex items-center space-x-3">
                                             <Avatar>
                                                 <AvatarImage src={client.avatarUrl || ""} />
-                                                <AvatarFallback>
+                                                <AvatarFallback className="bg-primary/10 text-primary">
                                                     {client.firstName[0]}
                                                     {client.lastName[0]}
                                                 </AvatarFallback>
@@ -135,7 +135,7 @@ export default async function ClientsPage({
                                     <TableCell>
                                         <div className="flex flex-wrap gap-1">
                                             {client.pets.map((pet) => (
-                                                <Badge key={pet.id} variant="secondary">
+                                                <Badge key={pet.id} variant="secondary" className="bg-primary/10 text-primary border-0">
                                                     {pet.name} ({pet.species})
                                                 </Badge>
                                             ))}
@@ -150,7 +150,7 @@ export default async function ClientsPage({
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <Button variant="ghost" size="icon" asChild>
+                                        <Button variant="ghost" size="icon" asChild className="hover:bg-primary/10">
                                             <Link href={`/dashboard/clients/${client.id}`}>
                                                 <Eye className="h-4 w-4" />
                                             </Link>
@@ -163,7 +163,7 @@ export default async function ClientsPage({
                 </Table>
             </div>
 
-            {/* Simple Pagination */}
+            {/* Pagination */}
             <div className="flex items-center justify-end space-x-2 py-4">
                 <Button
                     variant="outline"
@@ -194,6 +194,6 @@ export default async function ClientsPage({
                     )}
                 </Button>
             </div>
-        </div>
+        </PageContainer>
     )
 }

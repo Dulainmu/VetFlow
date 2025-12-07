@@ -40,6 +40,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 import {
     Select,
@@ -60,6 +61,7 @@ const formSchema = z.object({
     date: z.string().min(1, "Date is required"),
     time: z.string().min(1, "Time is required"),
     notes: z.string().optional(),
+    force: z.boolean().default(false).optional(),
 })
 
 interface CreateAppointmentDialogProps {
@@ -124,6 +126,7 @@ export function CreateAppointmentDialog({ clinicId, services, vets }: CreateAppo
             vetId: values.vetId,
             date: appointmentDate,
             notes: values.notes,
+            force: values.force,
         })
 
         if (result.success) {
@@ -355,10 +358,19 @@ export function CreateAppointmentDialog({ clinicId, services, vets }: CreateAppo
                             )}
                         />
 
+                        <div className="flex items-center space-x-2 pt-4">
+                            <Checkbox id="force" onCheckedChange={(checked) => form.setValue("force", checked as boolean)} />
+                            <label
+                                htmlFor="force"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-red-600"
+                            >
+                                Emergency Override (Force Book)
+                            </label>
+                        </div>
                         <DialogFooter>
-                            <Button type="submit" disabled={form.formState.isSubmitting}>
+                            <Button type="submit" disabled={form.formState.isSubmitting} variant={form.watch("force") ? "destructive" : "default"}>
                                 {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Create Appointment
+                                {form.watch("force") ? "Force Book Appointment" : "Create Appointment"}
                             </Button>
                         </DialogFooter>
                     </form>

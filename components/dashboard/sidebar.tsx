@@ -11,7 +11,8 @@ import {
     LogOut,
     Stethoscope,
     PawPrint,
-    BarChart3
+    BarChart3,
+    Upload
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { signOut } from "next-auth/react"
@@ -46,6 +47,12 @@ const routes = [
         icon: Users,
         href: "/dashboard/settings/staff",
         color: "text-green-600",
+    },
+    {
+        label: "Data Import",
+        icon: Upload,
+        href: "/dashboard/settings/import",
+        color: "text-purple-500",
     },
     {
         label: "Reports",

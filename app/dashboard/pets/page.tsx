@@ -13,8 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Search, Eye, Plus, PawPrint } from "lucide-react"
 import Link from "next/link"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
+import { PageHeader, PageContainer } from "@/components/shared"
 
 export default async function PetsPage({
     searchParams,
@@ -34,7 +33,7 @@ export default async function PetsPage({
         OR: query
             ? [
                 { name: { contains: query, mode: "insensitive" as const } },
-                { species: { equals: query.toUpperCase() as any } }, // Simple species match
+                { species: { equals: query.toUpperCase() as any } },
                 { breed: { contains: query, mode: "insensitive" as const } },
                 { owner: { firstName: { contains: query, mode: "insensitive" as const } } },
                 { owner: { lastName: { contains: query, mode: "insensitive" as const } } },
@@ -58,20 +57,17 @@ export default async function PetsPage({
     const totalPages = Math.ceil(totalPets / itemsPerPage)
 
     return (
-        <div className="flex-1 space-y-4 p-8 pt-6">
-            <div className="flex items-center justify-between space-y-2">
-                <h2 className="text-3xl font-bold tracking-tight">Pets</h2>
-                <div className="flex items-center space-x-2">
-                    <Button asChild>
-                        <Link href="/dashboard/pets/new">
-                            <Plus className="mr-2 h-4 w-4" />
-                            Add Pet
-                        </Link>
-                    </Button>
-                </div>
-            </div>
+        <PageContainer>
+            <PageHeader title="Pets">
+                <Button asChild className="card-hover">
+                    <Link href="/dashboard/pets/new">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Pet
+                    </Link>
+                </Button>
+            </PageHeader>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 animate-fade-in">
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -82,7 +78,7 @@ export default async function PetsPage({
                 </div>
             </div>
 
-            <div className="rounded-md border">
+            <div className="rounded-md border animate-scale-in bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -101,8 +97,12 @@ export default async function PetsPage({
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            pets.map((pet) => (
-                                <TableRow key={pet.id}>
+                            pets.map((pet, idx) => (
+                                <TableRow
+                                    key={pet.id}
+                                    className="animate-fade-in"
+                                    style={{ animationDelay: `${idx * 50}ms` }}
+                                >
                                     <TableCell className="font-medium">
                                         <div className="flex items-center space-x-3">
                                             <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
@@ -136,7 +136,6 @@ export default async function PetsPage({
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        {/* We can add a pet details view later if needed, for now link to client */}
                                         <Link
                                             href={`/dashboard/pets/${pet.id}`}
                                             className={buttonVariants({ variant: "ghost", size: "icon" })}
@@ -151,7 +150,7 @@ export default async function PetsPage({
                 </Table>
             </div>
 
-            {/* Simple Pagination */}
+            {/* Pagination */}
             <div className="flex items-center justify-end space-x-2 py-4">
                 <Button
                     variant="outline"
@@ -182,6 +181,6 @@ export default async function PetsPage({
                     )}
                 </Button>
             </div>
-        </div>
+        </PageContainer>
     )
 }

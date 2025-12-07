@@ -19,14 +19,14 @@ export default function HolidaysPage({ params }: { params: { clinicSlug: string 
     }, [])
 
     async function loadHolidays() {
-        const data = await getPublicHolidays("vetflow-demo")
+        const data = await getPublicHolidays()
         setHolidays(data)
         setLoading(false)
     }
 
     async function handleAdd() {
         if (!newName || !newDate) return
-        await createPublicHoliday("vetflow-demo", { name: newName, date: new Date(newDate) })
+        await createPublicHoliday({ name: newName, date: new Date(newDate) })
         setNewName("")
         setNewDate("")
         loadHolidays()

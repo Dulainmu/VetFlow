@@ -27,7 +27,7 @@ export default async function InvoiceDetailsPage({ params }: { params: { id: str
                     </p>
                 </div>
                 <div className="flex items-center space-x-2">
-                    <Button variant="outline">
+                    <Button variant="outline" onClick={() => window.print()}>
                         <Printer className="mr-2 h-4 w-4" />
                         Print
                     </Button>
@@ -49,6 +49,11 @@ export default async function InvoiceDetailsPage({ params }: { params: { id: str
                             </p>
                             <p className="text-sm text-muted-foreground">{invoice.appointment?.pet.owner.email}</p>
                             <p className="text-sm text-muted-foreground">{invoice.appointment?.pet.owner.mobile}</p>
+                            {invoice.appointment?.pet.owner.address && (
+                                <p className="text-sm text-muted-foreground">
+                                    {invoice.appointment?.pet.owner.address}, {invoice.appointment?.pet.owner.city}
+                                </p>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -60,11 +65,11 @@ export default async function InvoiceDetailsPage({ params }: { params: { id: str
                         <div className="flex items-center justify-between">
                             <div className="space-y-1">
                                 <p className="text-sm font-medium">Total Amount</p>
-                                <p className="text-2xl font-bold">${invoice.total.toFixed(2)}</p>
+                                <p className="text-2xl font-bold">Rs. {invoice.total.toFixed(2)}</p>
                             </div>
                             <div className="space-y-1 text-right">
                                 <p className="text-sm font-medium">Amount Paid</p>
-                                <p className="text-2xl font-bold text-green-600">${invoice.amountPaid.toFixed(2)}</p>
+                                <p className="text-2xl font-bold text-green-600">Rs. {invoice.amountPaid.toFixed(2)}</p>
                             </div>
                         </div>
                         <div className="mt-4">
@@ -96,25 +101,25 @@ export default async function InvoiceDetailsPage({ params }: { params: { id: str
                                 <div>
                                     <p className="font-medium">{item.description}</p>
                                     <p className="text-sm text-muted-foreground">
-                                        {item.quantity} x ${item.unitPrice.toFixed(2)}
+                                        {item.quantity} x Rs. {item.unitPrice.toFixed(2)}
                                     </p>
                                 </div>
-                                <p className="font-medium">${item.total.toFixed(2)}</p>
+                                <p className="font-medium">Rs. {item.total.toFixed(2)}</p>
                             </div>
                         ))}
                         <div className="pt-4 space-y-2">
                             <div className="flex justify-between text-sm">
                                 <span>Subtotal</span>
-                                <span>${invoice.subtotal.toFixed(2)}</span>
+                                <span>Rs. {invoice.subtotal.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span>GST (10%)</span>
-                                <span>${invoice.tax.toFixed(2)}</span>
+                                <span>Rs. {invoice.tax.toFixed(2)}</span>
                             </div>
                             <Separator />
                             <div className="flex justify-between font-bold text-lg">
                                 <span>Total</span>
-                                <span>${invoice.total.toFixed(2)}</span>
+                                <span>Rs. {invoice.total.toFixed(2)}</span>
                             </div>
                         </div>
                     </div>
@@ -139,7 +144,7 @@ export default async function InvoiceDetailsPage({ params }: { params: { id: str
                                         </p>
                                     </div>
                                     <p className="font-medium text-green-600">
-                                        +${payment.amount.toFixed(2)}
+                                        +Rs. {payment.amount.toFixed(2)}
                                     </p>
                                 </div>
                             ))}

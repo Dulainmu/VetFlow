@@ -1,16 +1,10 @@
 import { Metadata } from "next"
-import { Activity, Calendar, CreditCard, DollarSign, PawPrint, Plus, UserPlus, Users } from "lucide-react"
+import { Calendar, DollarSign, PawPrint, Plus, UserPlus, Users } from "lucide-react"
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
+import { PageHeader, PageContainer, StaggerGrid, AnimatedCard } from "@/components/shared"
 import { RecentAppointments } from "@/components/dashboard/recent-appointments"
 import { StatsCard } from "@/components/dashboard/stats-cards"
 import { OverviewChart } from "@/components/dashboard/overview-chart"
@@ -48,40 +42,35 @@ export default async function DashboardPage() {
     ])
 
     return (
-        <div className="flex-1 space-y-4 p-8 pt-6">
-            <div className="flex flex-col md:flex-row items-center justify-between space-y-2 md:space-y-0">
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-                    <p className="text-muted-foreground">
-                        Welcome back, Dr. {session.user.lastName}. Here's what's happening today.
-                    </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                    <Button asChild variant="outline">
-                        <Link href="/dashboard/clients/new">
-                            <UserPlus className="mr-2 h-4 w-4" />
-                            Add Client
-                        </Link>
-                    </Button>
-                    <Button asChild variant="outline">
-                        <Link href="/dashboard/pets/new">
-                            <PawPrint className="mr-2 h-4 w-4" />
-                            Add Pet
-                        </Link>
-                    </Button>
-                    <Button asChild>
-                        <Link href="/dashboard/appointments">
-                            <Plus className="mr-2 h-4 w-4" />
-                            Book Appointment
-                        </Link>
-                    </Button>
-                </div>
-            </div>
+        <PageContainer>
+            <PageHeader
+                title="Dashboard"
+                description={`Welcome back, Dr. ${session.user.lastName}. Here's what's happening today.`}
+            >
+                <Button asChild variant="outline" className="card-hover">
+                    <Link href="/dashboard/clients/new">
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Add Client
+                    </Link>
+                </Button>
+                <Button asChild variant="outline" className="card-hover">
+                    <Link href="/dashboard/pets/new">
+                        <PawPrint className="mr-2 h-4 w-4" />
+                        Add Pet
+                    </Link>
+                </Button>
+                <Button asChild className="card-hover">
+                    <Link href="/dashboard/appointments">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Book Appointment
+                    </Link>
+                </Button>
+            </PageHeader>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StaggerGrid cols={4}>
                 <StatsCard
                     title="Total Revenue"
-                    value="$45,231.89"
+                    value="Rs. 45,231"
                     icon={DollarSign}
                     description="+20.1% from last month"
                     trend="up"
@@ -109,32 +98,26 @@ export default async function DashboardPage() {
                     description="Scheduled for today"
                     trend="neutral"
                 />
-            </div>
+            </StaggerGrid>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-4">
-                    <CardHeader>
-                        <CardTitle>Overview</CardTitle>
-                        <CardDescription>
-                            Monthly appointment volume.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pl-2">
-                        <OverviewChart />
-                    </CardContent>
-                </Card>
-                <Card className="col-span-3">
-                    <CardHeader>
-                        <CardTitle>Recent Activity</CardTitle>
-                        <CardDescription>
-                            Latest appointments booked.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <RecentAppointments />
-                    </CardContent>
-                </Card>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 stagger-children">
+                <AnimatedCard
+                    title="Overview"
+                    description="Monthly appointment volume."
+                    className="col-span-4"
+                    delay={100}
+                >
+                    <OverviewChart />
+                </AnimatedCard>
+                <AnimatedCard
+                    title="Recent Activity"
+                    description="Latest appointments booked."
+                    className="col-span-3"
+                    delay={150}
+                >
+                    <RecentAppointments />
+                </AnimatedCard>
             </div>
-        </div>
+        </PageContainer>
     )
 }

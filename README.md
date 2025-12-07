@@ -129,7 +129,7 @@ See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for detailed architecture.
    NEXTAUTH_SECRET="generate-with-openssl"
    RESEND_API_KEY="your-resend-key"
     PAYHERE_MERCHANT_ID="your-merchant-id"
-    PAYHERE_SECRET="your-payhere-secret"
+    PAYHERE_MERCHANT_SECRET="your-payhere-secret"
    # ... see .env.example for full list
    ```
 

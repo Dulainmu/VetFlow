@@ -61,7 +61,7 @@ TWILIO_PHONE_NUMBER="+61xxxxxxxxx"
 
 # PayHere (Sri Lanka Pilot)
 PAYHERE_MERCHANT_ID="your-merchant-id"
-PAYHERE_SECRET="your-payhere-secret"
+PAYHERE_MERCHANT_SECRET="your-payhere-secret"
 
 # Sentry (Error Tracking)
 NEXT_PUBLIC_SENTRY_DSN="https://xxxxx@xxxxx.ingest.sentry.io/xxxxx"

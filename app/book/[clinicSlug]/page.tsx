@@ -444,10 +444,9 @@ export default function BookingPage({ params }: { params: { clinicSlug: string }
                             }
                         </div>
                     </CardContent>
-                </motion.div>
-            </Card>
+                </Card>
+            </div>
         </div>
-        </div >
     )
 }
 

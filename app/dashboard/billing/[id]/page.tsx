@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { RecordPaymentDialog } from "@/components/billing/record-payment-dialog"
+import { MarkPaidCashButton } from "@/components/billing/mark-paid-cash-button"
 import { Printer } from "lucide-react"
 
 export default async function InvoiceDetailsPage({ params }: { params: { id: string } }) {
@@ -32,7 +33,10 @@ export default async function InvoiceDetailsPage({ params }: { params: { id: str
                         Print
                     </Button>
                     {invoice.status !== "PAID" && (
-                        <RecordPaymentDialog invoiceId={invoice.id} balance={invoice.total - invoice.amountPaid} />
+                        <>
+                            <MarkPaidCashButton invoiceId={invoice.id} balance={invoice.total - invoice.amountPaid} />
+                            <RecordPaymentDialog invoiceId={invoice.id} balance={invoice.total - invoice.amountPaid} />
+                        </>
                     )}
                 </div>
             </div>

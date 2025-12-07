@@ -89,7 +89,7 @@ export function RecordPaymentDialog({ invoiceId, balance }: RecordPaymentDialogP
                 <DialogHeader>
                     <DialogTitle>Record Payment</DialogTitle>
                     <DialogDescription>
-                        Record a payment for this invoice. Remaining balance: ${balance.toFixed(2)}
+                        Record a payment for this invoice. Remaining balance: Rs. {balance.toFixed(2)}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">

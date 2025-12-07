@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { Heart, Clock, MapPin, Phone, ArrowRight, Stethoscope, Syringe, Scissors, Star, Activity, Calendar, Check } from "lucide-react"
 import { PricingSection } from "@/components/landing/pricing-section"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function LandingPage() {
     const { scrollY } = useScroll()
@@ -26,24 +27,25 @@ export default function LandingPage() {
     }
 
     return (
-        <div className="min-h-screen bg-white selection:bg-primary-100 selection:text-primary-900 font-sans">
+        <div className="min-h-screen bg-white dark:bg-slate-950 selection:bg-primary-100 selection:text-primary-900 dark:selection:bg-primary-900 dark:selection:text-primary-100 font-sans transition-colors duration-300">
             {/* Floating Header */}
             <motion.nav
                 style={{ opacity: headerOpacity, y: headerY }}
-                className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-100 shadow-sm"
+                className="fixed top-0 left-0 right-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md z-50 border-b border-gray-100 dark:border-slate-800 shadow-sm"
             >
                 <div className="container mx-auto px-6 h-20 flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                         <div className="bg-primary-600 p-2 rounded-xl shadow-lg shadow-primary-600/20">
                             <Heart className="w-6 h-6 text-white fill-current" />
                         </div>
-                        <span className="text-xl font-bold text-gray-900 tracking-tight">Happy Paws</span>
+                        <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Happy Paws</span>
                     </div>
                     <div className="hidden md:flex items-center space-x-8">
-                        <Link href="#services" className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">Services</Link>
-                        <Link href="#about" className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">About</Link>
-                        <Link href="#pricing" className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">Pricing</Link>
-                        <Link href="#team" className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">Team</Link>
+                        <Link href="#services" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Services</Link>
+                        <Link href="#about" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">About</Link>
+                        <Link href="#pricing" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Pricing</Link>
+                        <Link href="#team" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Team</Link>
+                        <ThemeToggle />
                         <Link href="/book/happy-paws">
                             <Button className="bg-primary-600 hover:bg-primary-700 text-white rounded-full px-6 shadow-lg shadow-primary-600/20 transition-all hover:scale-105">
                                 Book Now
@@ -54,12 +56,12 @@ export default function LandingPage() {
             </motion.nav>
 
             {/* Hero Section - 100vh */}
-            <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#F8FAFC]">
+            <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#F8FAFC] dark:bg-slate-950">
                 {/* Abstract Background Shapes */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] bg-gradient-to-br from-blue-100/40 to-purple-100/40 rounded-full blur-3xl animate-blob" />
-                    <div className="absolute top-[20%] -left-[10%] w-[50%] h-[50%] bg-gradient-to-tr from-teal-100/40 to-emerald-100/40 rounded-full blur-3xl animate-blob animation-delay-2000" />
-                    <div className="absolute -bottom-[20%] left-[20%] w-[60%] h-[60%] bg-gradient-to-t from-orange-100/40 to-rose-100/40 rounded-full blur-3xl animate-blob animation-delay-4000" />
+                    <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] bg-gradient-to-br from-blue-100/40 dark:from-blue-900/20 to-purple-100/40 dark:to-purple-900/20 rounded-full blur-3xl animate-blob" />
+                    <div className="absolute top-[20%] -left-[10%] w-[50%] h-[50%] bg-gradient-to-tr from-teal-100/40 dark:from-teal-900/20 to-emerald-100/40 dark:to-emerald-900/20 rounded-full blur-3xl animate-blob animation-delay-2000" />
+                    <div className="absolute -bottom-[20%] left-[20%] w-[60%] h-[60%] bg-gradient-to-t from-orange-100/40 dark:from-orange-900/20 to-rose-100/40 dark:to-rose-900/20 rounded-full blur-3xl animate-blob animation-delay-4000" />
                 </div>
 
                 <div className="container mx-auto px-6 relative z-10 pt-20">
@@ -80,14 +82,14 @@ export default function LandingPage() {
                                 <span className="text-sm font-medium text-gray-600">Accepting new patients</span>
                             </motion.div>
 
-                            <h1 className="text-6xl md:text-7xl font-extrabold text-gray-900 leading-[1.1] mb-8 tracking-tight">
+                            <h1 className="text-6xl md:text-7xl font-extrabold text-gray-900 dark:text-white leading-[1.1] mb-8 tracking-tight">
                                 Modern care for <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-600">
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-600 dark:from-primary-400 dark:to-blue-400">
                                     modern pets.
                                 </span>
                             </h1>
 
-                            <p className="text-xl text-gray-600 mb-10 leading-relaxed max-w-lg">
+                            <p className="text-xl text-gray-600 dark:text-gray-300 mb-10 leading-relaxed max-w-lg">
                                 Experience veterinary care reimagined. We combine advanced medicine with a gentle touch to keep your best friend happy and healthy.
                             </p>
 
